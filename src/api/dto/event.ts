@@ -13,3 +13,16 @@ export type VideoDownloads = {
 export type EditOptions = {
   videoPath?: string;
 };
+
+export type UploadVideoOptions = {
+  googleAccount: string;
+  videos: {
+    fileName: string;
+    videoURL?: string; // url of the video to be uploaded
+    title: string;
+    description: string;
+    tags: string[];
+    categoryId: string;
+    privacyStatus: 'private' | 'public' | 'unlisted';
+  }[]
+}

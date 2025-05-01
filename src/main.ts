@@ -8,6 +8,9 @@ import started from 'electron-squirrel-startup';
 import initialize from './api/events/crawler-video';
 import initDownload from './api/events/download-video';
 import initLoginGoogle from './api/events/login-google';
+import initUploadVideo from './api/events/upload-video';
+import fs from 'fs';
+import { downloadDir, editDir, outroDir } from './util/constant';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -33,12 +36,15 @@ const createWindow = () => {
     mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
   }
 
-  console.log(process.env.VITE_GOOGLE_CLIENT_ID);
+  if (!fs.existsSync(downloadDir)) fs.mkdirSync(downloadDir);
+  if (!fs.existsSync(outroDir)) fs.mkdirSync(outroDir);
+  if (!fs.existsSync(editDir)) fs.mkdirSync(editDir);
 
   mainWindow.webContents.on("did-finish-load", () => {
     initialize(mainWindow);
     initDownload(mainWindow);
     initLoginGoogle(mainWindow);
+    initUploadVideo(mainWindow);
   });
 
   // Open the DevTools.

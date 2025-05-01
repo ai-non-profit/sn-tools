@@ -36,19 +36,3 @@ export async function getAuthenticatedClient() {
   await open(authUrl);
   return new Promise((resolve) => server.on('close', () => resolve(oauth2Client)));
 }
-
-// export async function uploadVideo(videoPath, title = 'My Video', description = '') {
-//   const auth = await getAuthenticatedClient();
-//   const youtube = google.youtube({ version: 'v3', auth });
-
-//   const res = await youtube.videos.insert({
-//     part: ['snippet', 'status'],
-//     requestBody: {
-//       snippet: { title, description, categoryId: '22' },
-//       status: { privacyStatus: 'private' },
-//     },
-//     media: { body: fs.createReadStream(videoPath) },
-//   });
-
-//   return res.data;
-// }

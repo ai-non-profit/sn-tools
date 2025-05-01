@@ -3,7 +3,6 @@ import { IPCEvent } from "src/util/constant";
 import { VideoDownloads } from "../dto/event";
 import path from "path";
 import fs from "fs";
-import https from "https";
 import pLimit from "p-limit";
 import got from "got";
 import { exec } from "child_process";
