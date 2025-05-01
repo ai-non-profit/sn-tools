@@ -55,12 +55,8 @@
   },
   "dependencies": {
     "@mui/icons-material": "^7.0.2",
-    "@mui/x-charts": "^8.1.0",
     "@mui/x-data-grid": "^8.1.0",
-    "@mui/x-date-pickers": "^8.1.0",
     "@mui/x-tree-view": "^8.1.0",
-    "@react-spring/web": "^9.7.5",
-    "dayjs": "^1.11.13",
     "electron-squirrel-startup": "^1.0.1",
     "electron-store": "^10.0.1",
     "googleapis": "^148.0.0",

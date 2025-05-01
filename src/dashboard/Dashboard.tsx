@@ -1,7 +1,4 @@
 import * as React from 'react';
-import type { } from '@mui/x-date-pickers/themeAugmentation';
-// import type {} from '@mui/x-charts/themeAugmentation';
-// import type {} from '@mui/x-data-grid-pro/themeAugmentation';
 import type { } from '@mui/x-tree-view/themeAugmentation';
 import { alpha } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -9,26 +6,23 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import AppNavbar from './components/AppNavbar';
 import Header from './components/Header';
-import MainGrid from './components/MainGrid';
 import SideMenu from './components/SideMenu';
 import AppTheme from '../shared-theme/AppTheme';
 import {
-  chartsCustomizations,
   dataGridCustomizations,
-  datePickersCustomizations,
   treeViewCustomizations,
 } from './theme/customizations';
-import { Route, Router, Switch } from 'wouter';
+import { Route, Router } from 'wouter';
 // eslint-disable-next-line import/no-unresolved
-import { useHashLocation } from "wouter/use-hash-location";
-import Crawler from './pages/crawler';
+import MainGrid from './components/MainGrid';
+import { lazy, Suspense } from 'react';
 
 const xThemeComponents = {
-  ...chartsCustomizations,
   ...dataGridCustomizations,
-  ...datePickersCustomizations,
   ...treeViewCustomizations,
 };
+
+const Crawler = lazy(() => import('./pages/crawler'));
 
 
 export default function Dashboard(props: { disableCustomTheme?: boolean }) {
@@ -60,11 +54,15 @@ export default function Dashboard(props: { disableCustomTheme?: boolean }) {
           >
             <Header />
             <Router base="/">
-                <Route path="/" component={Crawler} />
-                <Route path="/crawler" component={Crawler} />
-                <Route path="/analytics" component={() => { return (<>asdf</>) }} />
+              <Route path="/" component={MainGrid} />
+              <Route path="/crawler">
+                <Suspense fallback={<div>Loading Home...</div>}>
+                  <Crawler />
+                </Suspense>
+              </Route>
+              <Route path="/analytics" component={() => { return (<>asdf</>) }} />
             </Router>
-           
+
           </Stack>
         </Box>
       </Box>

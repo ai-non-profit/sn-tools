@@ -1,13 +1,15 @@
 import { BrowserWindow, ipcMain } from "electron";
 import { IPCEvent } from "src/util/constant";
 import { headlessConfig, headless } from "src/api/util/headless";
+import mockData from "test/crawler-video.json";
 
 const initialize = (mainWindow: BrowserWindow) => {
 
   ipcMain.on(IPCEvent.CRAWLER_VIDEO, async (event, { search }) => {
     console.log("Received data from renderer:", search);
 
-    const { data, headers } = await tryFirstRequest(search);
+    // const { data, headers }: any = await tryFirstRequest(search);
+    const data = mockData.data;
 
     // TODO: Continue get data
     mainWindow.webContents.send(IPCEvent.FROM_MAIN, {

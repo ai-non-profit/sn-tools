@@ -12,7 +12,7 @@ import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
 import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
 import HelpRoundedIcon from '@mui/icons-material/HelpRounded';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { Download } from '@mui/icons-material';
 
 const mainListItems = [
@@ -30,13 +30,15 @@ const secondaryListItems = [
 ];
 
 export default function MenuContent() {
+  const [location] = useLocation();
+
   return (
     <Stack sx={{ flexGrow: 1, p: 1, justifyContent: 'space-between' }}>
       <List dense>
         {mainListItems.map((item, index) => (
           <Link to={item.href ?? '/'} key={index}>
             <ListItem disablePadding sx={{ display: 'block' }}>
-              <ListItemButton selected={index === 0}>
+              <ListItemButton selected={item.href === location}>
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText>{item.text}</ListItemText>
               </ListItemButton>
