@@ -9,3 +9,7 @@ export type VideoDownloads = {
   format: string;
   duration: number; // in seconds
 }[];
+
+export type EditOptions = {
+  videoPath?: string;
+};
