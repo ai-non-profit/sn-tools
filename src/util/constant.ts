@@ -1,5 +1,7 @@
 export enum IPCEvent {
   FROM_MAIN = 'from-main',
-  DOWNLOAD_VIDEO = 'download-video',
+  CRAWLER_VIDEO = 'crawler-video',
   SHOW_VIDEO = 'show-video',
+  DOWNLOAD_VIDEOS = 'download-videos',
+  DOWNLOAD_PROGRESS = 'download-progress',
 }

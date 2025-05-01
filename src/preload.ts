@@ -5,6 +5,6 @@ import { IPCEvent } from "./util/constant";
 import { CrossEvent } from "./api/dto/event";
 
 contextBridge.exposeInMainWorld("electronAPI", {
-  sendToMain: (channel: string, data: any) => ipcRenderer.send(channel, data),
-  onMessageFromMain: (callback: (data: CrossEvent) => any) => ipcRenderer.on(IPCEvent.FROM_MAIN, (_event, data) => callback(data)),
+  sendToMain: <T = any>(channel: string, data: T) => ipcRenderer.send(channel, data),
+  onMessageFromMain: <T = any>(callback: (data: CrossEvent<T>) => any) => ipcRenderer.on(IPCEvent.FROM_MAIN, (_event, data) => callback(data)),
 });

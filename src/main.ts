@@ -1,7 +1,8 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
-import { initialize } from 'src/api/events';
+import initialize from './api/events/crawler-video';
+import initDownload from './api/events/download-video';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -29,6 +30,7 @@ const createWindow = () => {
 
   mainWindow.webContents.on("did-finish-load", () => {
     initialize(mainWindow);
+    initDownload(mainWindow);
   });
 
   // Open the DevTools.

@@ -2,9 +2,9 @@ import { BrowserWindow, ipcMain } from "electron";
 import { IPCEvent } from "src/util/constant";
 import { headlessConfig, headless } from "src/util/headless";
 
-export const initialize = (mainWindow: BrowserWindow) => {
+const initialize = (mainWindow: BrowserWindow) => {
 
-  ipcMain.on(IPCEvent.DOWNLOAD_VIDEO, async (event, { search }) => {
+  ipcMain.on(IPCEvent.CRAWLER_VIDEO, async (event, { search }) => {
     console.log("Received data from renderer:", search);
 
     const { data, headers } = await tryFirstRequest(search);
@@ -44,3 +44,5 @@ const tryFirstRequest = async (search: string) => {
     await page.goto(url, { waitUntil: "networkidle2" });
   });
 }
+
+export default initialize;

@@ -6,8 +6,8 @@ export {};
 declare global {
   interface Window {
     electronAPI?: {
-      sendToMain: (channel: string, data: any) => void;
-      onMessageFromMain: (callback: (data: CrossEvent) => any) => void;
+      sendToMain: <T = any>(channel: string, data: T) => void;
+      onMessageFromMain: <T = any>(callback: (data: CrossEvent<T>) => any) => void;
     };
   }
 }
