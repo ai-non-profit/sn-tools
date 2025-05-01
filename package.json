@@ -57,6 +57,9 @@
     "@react-spring/web": "^9.7.5",
     "dayjs": "^1.11.13",
     "electron-squirrel-startup": "^1.0.1",
+    "puppeteer": "^24.7.2",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "wouter": "^3.7.0"
   }
 }
