@@ -36,9 +36,9 @@ const createWindow = () => {
     mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
   }
 
-  if (!fs.existsSync(downloadDir)) fs.mkdirSync(downloadDir);
-  if (!fs.existsSync(outroDir)) fs.mkdirSync(outroDir);
-  if (!fs.existsSync(editDir)) fs.mkdirSync(editDir);
+  // if (!fs.existsSync(downloadDir)) fs.mkdirSync(downloadDir);
+  // if (!fs.existsSync(outroDir)) fs.mkdirSync(outroDir);
+  // if (!fs.existsSync(editDir)) fs.mkdirSync(editDir);
 
   mainWindow.webContents.on("did-finish-load", () => {
     initialize(mainWindow);

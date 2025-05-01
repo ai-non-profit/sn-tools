@@ -1,6 +1,6 @@
 import { BrowserWindow, ipcMain } from "electron";
 import { IPCEvent } from "src/util/constant";
-import { headlessConfig, headless } from "src/util/headless";
+import { headlessConfig, headless } from "src/api/util/headless";
 
 const initialize = (mainWindow: BrowserWindow) => {
 

@@ -1,9 +1,10 @@
 import { BrowserWindow, ipcMain } from "electron";
-import { editDir, IPCEvent } from "src/util/constant";
+import { IPCEvent } from "src/util/constant";
 import { getAuthenticatedClient } from "../service/google.service";
 import { UploadVideoOptions } from "../dto/event";
 import { google, youtube_v3 } from "googleapis";
 import fs from "fs";
+import { editDir } from "../util";
 
 const initialize = (mainWindow: BrowserWindow) => {
 

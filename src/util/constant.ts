@@ -1,6 +1,3 @@
-import path from "path";
-import fs from "fs";
-
 export enum IPCEvent {
   FROM_MAIN = 'from-main',
   CRAWLER_VIDEO = 'crawler-video',
@@ -14,6 +11,4 @@ export enum IPCEvent {
   UPLOAD_VIDEO_PROGRESS = 'upload-video-progress',
 }
 
-export const downloadDir = path.resolve("downloads/original");
-export const outroDir = path.resolve("downloads/outro");
-export const editDir = path.resolve("downloads/edited");
+
