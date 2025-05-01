@@ -82,6 +82,10 @@ export default function Crawler() {
     window.electronAPI.sendToMain<VideoDownloads>(IPCEvent.DOWNLOAD_VIDEOS, mockVideos);
   };
 
+  const testLoginGoogle = () => {
+    window.electronAPI.sendToMain(IPCEvent.LOGIN_GOOGLE, {});
+  };
+
   React.useEffect(() => {
     window.electronAPI?.onMessageFromMain((data) => {
       if (data.event !== IPCEvent.SHOW_VIDEO) return;
@@ -120,6 +124,7 @@ export default function Crawler() {
         <CardActions sx={{ pt: 1 }}>
           <Button variant='contained' size="small" onClick={handleSearch}>Search</Button>
           <Button variant='contained' size="small" onClick={testDownload}>Test Send Download</Button>
+          <Button variant='contained' size="small" onClick={testLoginGoogle}>Test Login Goolge</Button>
         </CardActions>
       </Card>
 

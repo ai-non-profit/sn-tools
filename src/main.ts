@@ -1,8 +1,13 @@
+import dotenv from 'dotenv';
+// eslint-disable-next-line import/no-named-as-default-member
+dotenv.config();
+
 import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import initialize from './api/events/crawler-video';
 import initDownload from './api/events/download-video';
+import initLoginGoogle from './api/events/login-google';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -28,9 +33,12 @@ const createWindow = () => {
     mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
   }
 
+  console.log(process.env.VITE_GOOGLE_CLIENT_ID);
+
   mainWindow.webContents.on("did-finish-load", () => {
     initialize(mainWindow);
     initDownload(mainWindow);
+    initLoginGoogle(mainWindow);
   });
 
   // Open the DevTools.

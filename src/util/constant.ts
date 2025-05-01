@@ -6,4 +6,5 @@ export enum IPCEvent {
   DOWNLOAD_PROGRESS = 'download-progress',
   EDIT_VIDEO = 'edit-video',
   EDIT_VIDEO_PROGRESS = 'edit-video-progress',
+  LOGIN_GOOGLE = 'login-google',
 }

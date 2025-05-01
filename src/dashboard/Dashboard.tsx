@@ -60,7 +60,7 @@ export default function Dashboard(props: { disableCustomTheme?: boolean }) {
           >
             <Header />
             <Router base="/">
-                <Route path="/" component={MainGrid} />
+                <Route path="/" component={Crawler} />
                 <Route path="/crawler" component={Crawler} />
                 <Route path="/analytics" component={() => { return (<>asdf</>) }} />
             </Router>
