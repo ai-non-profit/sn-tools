@@ -11,6 +11,19 @@ import { VideoDownloads } from 'src/api/dto/event';
 const columns: GridColDef[] = [
   { field: 'item.id', headerName: 'ID', width: 90, valueGetter: (_val, row) => row.item.id },
   {
+    field: 'item.video.cover',
+    headerName: 'Thumbnail',
+    minWidth: 200,
+    renderCell: (params: any) => (
+      <img
+        src={params.row.item.video.cover}
+        alt="item"
+        loading="lazy"
+        style={{ width: 150, height: 200, objectFit: 'cover', borderRadius: 4, margin: 5 }}
+      />
+    ),
+  },
+  {
     field: 'item',
     headerName: 'Description',
     minWidth: 150,
@@ -46,23 +59,16 @@ const columns: GridColDef[] = [
     minWidth: 100,
     renderCell: (params) => <Button variant='contained' size="small" >View Online</Button>
   },
-  {
-    field: 'item.video.cover',
-    headerName: 'Thumbnail',
-    minWidth: 150,
-    renderCell: (params: any) => (
-      <img
-        src={params.row.item.video.cover}
-        alt="item"
-        style={{ width: 150, height: 300, objectFit: 'cover', borderRadius: 4 }}
-      />
-    ),
-  },
+
 ];
 
 export default function Crawler() {
   const [search, setSearch] = React.useState<string>('');
   const [rows, setRows] = React.useState<[]>([]);
+  const [status, setStatus] = React.useState({
+    download: false,
+    append: false
+  });
 
   const handleSearch = () => {
     window.electronAPI.sendToMain(IPCEvent.CRAWLER_VIDEO, {
@@ -70,16 +76,26 @@ export default function Crawler() {
     });
   };
 
-  const testDownload = () => {
-    const mockVideos: VideoDownloads = [
-      {
-        id: "7462606645957283077",
-        url: "https://webapp-va.tiktok.com/b12dbcc16b8c7ffa81f60f9e000908db/6815f100/kmoat/mps/logo/v3/r/p/v09044g40000ctco96nog65q9gtodl1g/f70796d31eeb4790bbcabde4876af015/20c1443ae8aeb174cf88a34873e4c53f/mp4/main.mp4?a=1988&bti=NDU3ZjAwOg%3D%3D&ch=0&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C&cv=1&br=0&bt=0&cs=0&ds=3&ft=bLZkJm7nPD12NrGTch-Ux7yvGY6e3wv25scAp&mime_type=video_mp4&qs=0&rc=cnF8b2hsc2d3SkBwbmQxaDFwekApNGk5O2hlZmU8N2g0ZzwzaWcpNGd3PDhqcTxmZjMzajc8eXljRl5Nc3FePmJKYSNgbV90YmJeYDItXjQxYV5fLTRfYjAzNDQ6Y2RpbGRuM2wzbHEtLTExLS06&btag=e000b0000&definition=720p&du=13&item_id=7447130383260355846&l=20250501183322948058FD91409263AD23&logo_type=tiktok_creator&ply_type=2&policy=eyJ2bSI6MiwiY2siOiJ0dF9jaGFpbl90b2tlbiJ9&sign_params=item_id%2Cuser_text&user_text=tanji_kunxx",
-        format: "mp4",
-        duration: 15,
-      },
-    ];
-    window.electronAPI.sendToMain<VideoDownloads>(IPCEvent.DOWNLOAD_VIDEOS, mockVideos);
+  const handleDownloadAll = () => {
+    setStatus((status) => ({
+      ...status,
+      download: true
+    }));
+    const videos = rows.map<VideoDownloads[0]>((v: any) => ({
+      id: v.item.id,
+      url: v.item.video.downloadAddr ?? v.item.video.playAddr,
+      format: v.item.video.format,
+      duration: v.item.video.duration,
+    }));
+    window.electronAPI.sendToMain<VideoDownloads>(IPCEvent.DOWNLOAD_VIDEOS, videos);
+  };
+
+  const handleAppendOutro = () => {
+    setStatus((status) => ({
+      ...status,
+      append: true
+    }));
+    window.electronAPI.sendToMain(IPCEvent.EDIT_VIDEO, {});
   };
 
   const testLoginGoogle = () => {
@@ -87,9 +103,26 @@ export default function Crawler() {
   };
 
   React.useEffect(() => {
-    window.electronAPI?.onMessageFromMain((data) => {
-      if (data.event !== IPCEvent.SHOW_VIDEO) return;
-      setRows(data.data)
+    window.electronAPI?.onMessageFromMain(({ event, data }) => {
+      if (event === IPCEvent.SHOW_VIDEO) {
+        console.log(data);
+        setRows(data);
+        return;
+      }
+      if (event === IPCEvent.DOWNLOAD_PROGRESS) {
+        //TODO: handle percent
+        if (data.percent === 100) {
+          setStatus(status => ({ ...status, download: false }));
+          return;
+        }
+      }
+      if (event === IPCEvent.EDIT_VIDEO_PROGRESS) {
+        //TODO: handle percent
+        if (data.percent === 100) {
+          setStatus(status => ({ ...status, append: false }));
+          return;
+        }
+      }
     });
   }, []);
 
@@ -101,32 +134,48 @@ export default function Crawler() {
       </Typography>
       <Card sx={{ minWidth: 275, marginBottom: 2 }}>
         <CardContent>
-          <FormControl variant="outlined" fullWidth>
-            <OutlinedInput
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <FormControl variant="outlined" fullWidth>
+              <OutlinedInput
+                size="medium"
+                value={search}
+                id="search"
+                placeholder="Search video on tiktok"
+                onChange={(e) => setSearch(e.target.value)}
+                startAdornment={
+                  <InputAdornment position="start" sx={{ color: 'text.primary' }}>
+                    <SearchRoundedIcon fontSize="small" />
+                  </InputAdornment>
+                }
+                inputProps={{
+                  'aria-label': 'search',
+                }}
+              />
+            </FormControl>
+            <Button
+              variant="contained"
               size="medium"
-              value={search}
-              id="search"
-              placeholder="Search video on tiktok"
-              fullWidth
-              sx={{ flexGrow: 1 }}
-              onChange={(e) => setSearch(e.target.value)}
-              startAdornment={
-                <InputAdornment position="start" sx={{ color: 'text.primary' }}>
-                  <SearchRoundedIcon fontSize="small" />
-                </InputAdornment>
-              }
-              inputProps={{
-                'aria-label': 'search',
-              }}
-            />
-          </FormControl>
+              onClick={handleSearch}
+              sx={{ whiteSpace: 'nowrap' }}
+            >
+              Search
+            </Button>
+          </Box>
         </CardContent>
+
         <CardActions sx={{ pt: 1 }}>
-          <Button variant='contained' size="small" onClick={handleSearch}>Search</Button>
-          <Button variant='contained' size="small" onClick={testDownload}>Test Send Download</Button>
-          <Button variant='contained' size="small" onClick={testLoginGoogle}>Test Login Goolge</Button>
+          <Button variant="contained" size="small" onClick={handleDownloadAll} disabled={status.download}>
+            Download All
+          </Button>
+          <Button variant="contained" size="small" onClick={handleAppendOutro} disabled={status.append}>
+            Append Outro
+          </Button>
+          <Button variant="contained" size="small" onClick={testLoginGoogle}>
+            Test Login Google
+          </Button>
         </CardActions>
       </Card>
+
 
 
       <Box sx={{ width: '100%' }}>
@@ -136,6 +185,9 @@ export default function Crawler() {
           getRowId={row => row.item.id}
           checkboxSelection
           disableRowSelectionOnClick
+          disableColumnSelector
+          disableDensitySelector
+          getRowHeight={() => 210}
         />
       </Box>
     </Box>

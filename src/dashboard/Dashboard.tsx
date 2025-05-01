@@ -9,7 +9,6 @@ import Header from './components/Header';
 import SideMenu from './components/SideMenu';
 import AppTheme from '../shared-theme/AppTheme';
 import {
-  dataGridCustomizations,
   treeViewCustomizations,
 } from './theme/customizations';
 import { Route, Router } from 'wouter';
@@ -18,7 +17,6 @@ import MainGrid from './components/MainGrid';
 import { lazy, Suspense } from 'react';
 
 const xThemeComponents = {
-  ...dataGridCustomizations,
   ...treeViewCustomizations,
 };
 

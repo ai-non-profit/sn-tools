@@ -20,6 +20,7 @@ const initialize = (mainWindow: BrowserWindow) => {
     console.log("Received data from renderer:", data);
 
     const tasks = data.map(({ id, url, duration }) => {
+      if (!url) return;
       return limit(() =>
         downloadVideo(id, url, mainWindow)
           .then(async (dest) => {

@@ -11,6 +11,7 @@ import initLoginGoogle from './api/events/login-google';
 import initUploadVideo from './api/events/upload-video';
 import fs from 'fs';
 import { downloadDir, editDir, outroDir } from './util/constant';
+import initEdit from './api/events/edit-video';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -43,6 +44,7 @@ const createWindow = () => {
   mainWindow.webContents.on("did-finish-load", () => {
     initialize(mainWindow);
     initDownload(mainWindow);
+    initEdit(mainWindow);
     initLoginGoogle(mainWindow);
     initUploadVideo(mainWindow);
   });
