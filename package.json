@@ -31,6 +31,7 @@
     "@emotion/styled": "^11.14.0",
     "@mui/material": "^7.0.2",
     "@types/electron-squirrel-startup": "^1.0.2",
+    "@types/electron-store": "^3.2.2",
     "@types/got": "^9.6.12",
     "@types/jest": "^29.5.14",
     "@types/react": "^19.1.2",
@@ -66,7 +67,8 @@
     "puppeteer": "^24.7.2",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "wouter": "^3.7.0"
+    "wouter": "^3.7.0",
+    "zustand": "^5.0.4"
   },
   "jest": {
     "preset": "ts-jest",

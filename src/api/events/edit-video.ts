@@ -17,27 +17,40 @@ const outroPath = path.resolve("downloads/outro.mp4");
 const initialize = (mainWindow: BrowserWindow) => {
 
   ipcMain.on(IPCEvent.EDIT_VIDEO, async (event, data: EditOptions) => {
-    console.log("Received data from renderer:", data);
+    console.log("Start edit video:", data);
 
     const files = fs.readdirSync(downloadDir);
     const videoFiles = files.filter(isVideoFile);
   
-    for (const file of videoFiles) {
-      //TODO: Handle percentage
-      const originPath = path.join(downloadDir, file);
-      try {
-        await appendOutroToVideo(originPath, data.videoPath ?? outroPath, editDir);
-      } catch (err) {
-        console.error(`❌ Failed to process ${file}`, err);
+    try {
+      for (const file of videoFiles) {
+        //TODO: Handle percentage
+        const originPath = path.join(downloadDir, file);
+        try {
+          await appendOutroToVideo(originPath, data.videoPath ?? outroPath, editDir);
+        } catch (err) {
+          console.error(`❌ Failed to process ${file}`, err);
+        }
       }
+  
+      mainWindow.webContents.send(IPCEvent.FROM_MAIN, {
+        event: IPCEvent.EDIT_VIDEO_PROGRESS,
+        data: {
+          percent: 100,
+        }
+      });
+    } catch (err) {
+      console.error("Error editing video:", err);
+      mainWindow.webContents.send(IPCEvent.FROM_MAIN, {
+        event: IPCEvent.EDIT_VIDEO_PROGRESS,
+        data: {
+          percent: 0,
+          message: "Edit failed",
+          error: err.message,
+        }
+      });
     }
-
-    mainWindow.webContents.send(IPCEvent.FROM_MAIN, {
-      event: IPCEvent.EDIT_VIDEO_PROGRESS,
-      data: {
-        percent: 100,
-      }
-    });
+    
     // Do something with data (like start a download process)
   });
 }

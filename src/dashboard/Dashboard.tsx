@@ -52,8 +52,8 @@ export default function Dashboard(props: { disableCustomTheme?: boolean }) {
           >
             <Header />
             <Router base="/">
-              <Route path="/" component={MainGrid} />
-              <Route path="/crawler">
+              {/* <Route path="/" component={MainGrid} /> */}
+              <Route path="/">
                 <Suspense fallback={<div>Loading Home...</div>}>
                   <Crawler />
                 </Suspense>

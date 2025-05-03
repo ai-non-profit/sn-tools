@@ -1,16 +1,18 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import { Button, Card, CardActions, CardContent, FormControl, InputAdornment, OutlinedInput, } from '@mui/material';
+import { Button, Card, CardActions, CardContent, FormControl, InputAdornment, LinearProgress, OutlinedInput, } from '@mui/material';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { IPCEvent } from 'src/util/constant';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, useGridApiRef } from '@mui/x-data-grid';
 import { formatViewCount } from 'src/util/common';
 import { VideoDownloads } from 'src/api/dto/event';
+import AlertDialog, { AlertProps } from 'src/dashboard/components/AlertDialog';
 
 const columns: GridColDef[] = [
   { field: 'item.id', headerName: 'ID', width: 90, valueGetter: (_val, row) => row.item.id },
   {
+    flex: 0.025,
     field: 'item.video.cover',
     headerName: 'Thumbnail',
     minWidth: 200,
@@ -24,6 +26,7 @@ const columns: GridColDef[] = [
     ),
   },
   {
+    flex: 0.1,
     field: 'item',
     headerName: 'Description',
     minWidth: 150,
@@ -63,12 +66,15 @@ const columns: GridColDef[] = [
 ];
 
 export default function Crawler() {
+  const [alert, setAlert] = React.useState<AlertProps>();
   const [search, setSearch] = React.useState<string>('');
   const [rows, setRows] = React.useState<[]>([]);
   const [status, setStatus] = React.useState({
     download: false,
-    append: false
   });
+  const [progress, setProgress] = React.useState<number>(0);
+
+  const apiRef = useGridApiRef();
 
   const handleSearch = () => {
     window.electronAPI.sendToMain(IPCEvent.CRAWLER_VIDEO, {
@@ -77,16 +83,30 @@ export default function Crawler() {
   };
 
   const handleDownloadAll = () => {
+    const selectedRows = apiRef.current.getSelectedRows();
+    if (!selectedRows.size) {
+      return setAlert({
+        isOpen: true,
+        title: 'Warning',
+        message: 'Please select a least one video to download',
+        type: 'warning'
+      });
+    }
     setStatus((status) => ({
       ...status,
-      download: true
+      download: false
     }));
-    const videos = rows.map<VideoDownloads[0]>((v: any) => ({
-      id: v.item.id,
-      url: v.item.video.downloadAddr ?? v.item.video.playAddr,
-      format: v.item.video.format,
-      duration: v.item.video.duration,
-    }));
+    setProgress(50);
+    const videos: VideoDownloads = [];
+    rows.forEach((v: any) => {
+      if (!selectedRows.has(v.item.id)) return;
+      videos.push(({
+        id: v.item.id,
+        url: v.item.video.downloadAddr ?? v.item.video.playAddr,
+        format: v.item.video.format,
+        duration: v.item.video.duration,
+      }));
+    });
     window.electronAPI.sendToMain<VideoDownloads>(IPCEvent.DOWNLOAD_VIDEOS, videos);
   };
 
@@ -102,29 +122,66 @@ export default function Crawler() {
     window.electronAPI.sendToMain(IPCEvent.LOGIN_GOOGLE, {});
   };
 
+  const closeAlert = () => {
+    setAlert(alert => ({ ...alert, isOpen: false }));
+  }
+
   React.useEffect(() => {
     window.electronAPI?.onMessageFromMain(({ event, data }) => {
       if (event === IPCEvent.SHOW_VIDEO) {
-        console.log(data);
         setRows(data);
+        setStatus(status => ({ ...status, download: !!data.length }));
         return;
       }
       if (event === IPCEvent.DOWNLOAD_PROGRESS) {
-        //TODO: handle percent
+        if (data.error) {
+          setAlert({
+            isOpen: true,
+            title: 'Error',
+            message: data.message ?? data.error,
+            type: 'error'
+          });
+          setProgress(0);
+          return;
+        }
         if (data.percent === 100) {
-          setStatus(status => ({ ...status, download: false }));
+          setStatus(status => ({ ...status, download: true }));
+          setProgress(100);
+          setTimeout(() => {
+            setProgress(0);
+          }, 2000);
+          setAlert({
+            isOpen: true,
+            title: 'Success',
+            message: 'Download completed',
+            type: 'success'
+          });
           return;
         }
       }
       if (event === IPCEvent.EDIT_VIDEO_PROGRESS) {
-        //TODO: handle percent
         if (data.percent === 100) {
-          setStatus(status => ({ ...status, append: false }));
+          setAlert({
+            isOpen: true,
+            title: 'Success',
+            message: 'Append outro video completed',
+            type: 'success'
+          });
+          return;
+        }
+        if (data.error) {
+          setAlert({
+            isOpen: true,
+            title: 'Error',
+            message: data.message ?? data.error,
+            type: 'error'
+          });
           return;
         }
       }
     });
   }, []);
+
 
   return (
     <Box sx={{ width: '100%', maxWidth: { sm: '100%', md: '1700px' } }}>
@@ -164,10 +221,10 @@ export default function Crawler() {
         </CardContent>
 
         <CardActions sx={{ pt: 1 }}>
-          <Button variant="contained" size="small" onClick={handleDownloadAll} disabled={status.download}>
-            Download All
+          <Button variant="contained" size="small" onClick={handleDownloadAll} disabled={!status.download}>
+            Download
           </Button>
-          <Button variant="contained" size="small" onClick={handleAppendOutro} disabled={status.append}>
+          <Button variant="contained" size="small" onClick={handleAppendOutro}>
             Append Outro
           </Button>
           <Button variant="contained" size="small" onClick={testLoginGoogle}>
@@ -175,11 +232,10 @@ export default function Crawler() {
           </Button>
         </CardActions>
       </Card>
-
-
-
+      { progress > 0 && <LinearProgress variant="determinate" value={progress} /> }
       <Box sx={{ width: '100%' }}>
         <DataGrid
+          apiRef={apiRef}
           rows={rows}
           columns={columns}
           getRowId={row => row.item.id}
@@ -190,6 +246,10 @@ export default function Crawler() {
           getRowHeight={() => 210}
         />
       </Box>
+      <AlertDialog
+        {...alert}
+        onClose={closeAlert}
+      />
     </Box>
   );
 }

@@ -589,9 +589,9 @@
   optionalDependencies:
     global-agent "^3.0.0"
 
-"@electron/node-gyp@git+https://github.com/electron/node-gyp.git#06b29aafb7708acef8b3669835c8a7857ebc92d2":
+"@electron/node-gyp@https://github.com/electron/node-gyp#06b29aafb7708acef8b3669835c8a7857ebc92d2":
   version "10.2.0-electron.1"
-  resolved "git+https://github.com/electron/node-gyp.git#06b29aafb7708acef8b3669835c8a7857ebc92d2"
+  resolved "https://github.com/electron/node-gyp#06b29aafb7708acef8b3669835c8a7857ebc92d2"
   dependencies:
     env-paths "^2.2.0"
     exponential-backoff "^3.1.1"
@@ -1684,6 +1684,13 @@
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/@types/electron-squirrel-startup/-/electron-squirrel-startup-1.0.2.tgz#80c4b4c63dc5be3aa7d4ffe64471ba45aa73ae69"
   integrity sha512-AzxnvBzNh8K/0SmxMmZtpJf1/IWoGXLP+pQDuUaVkPyotI8ryvAtBSqgxR/qOSvxWHYWrxkeNsJ+Ca5xOuUxJQ==
+
+"@types/electron-store@^3.2.2":
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/@types/electron-store/-/electron-store-3.2.2.tgz#f10c0e2eb12555968aa2815ce4baea2af39d4801"
+  integrity sha512-N3X45mnsfnwmeZoXSZmeE7/Tne8kdbIKO1vQdbbEV04TzrMbWIeDVJJjnX2n5GH9O61zI612tet4s2jCZ55DXw==
+  dependencies:
+    electron-store "*"
 
 "@types/estree@1.0.7":
   version "1.0.7"
@@ -3289,7 +3296,7 @@ electron-squirrel-startup@^1.0.1:
   dependencies:
     debug "^2.2.0"
 
-electron-store@^10.0.1:
+electron-store@*, electron-store@^10.0.1:
   version "10.0.1"
   resolved "https://registry.yarnpkg.com/electron-store/-/electron-store-10.0.1.tgz#d6c0395a3f25be6686f89738d95f6e7b7864da6a"
   integrity sha512-Ok0bF13WWdTzZi9rCtPN8wUfwx+yDMmV6PAnCMqjNRKEXHmklW/rV+6DofV/Vf5qoAh+Bl9Bj7dQ+0W+IL2psg==
@@ -8203,3 +8210,8 @@ zod@^3.24.1:
   version "3.24.3"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.24.3.tgz#1f40f750a05e477396da64438e0e1c0995dafd87"
   integrity sha512-HhY1oqzWCQWuUqvBFnsyrtZRhyPeR7SUGv+C4+MsisMuVfSPx8HpwWqH8tRahSlt6M3PiFAcoeFhZAqIXTxoSg==
+
+zustand@^5.0.4:
+  version "5.0.4"
+  resolved "https://registry.yarnpkg.com/zustand/-/zustand-5.0.4.tgz#33af161f1e337854ccd8b711ef9e92545d6ae53f"
+  integrity sha512-39VFTN5InDtMd28ZhjLyuTnlytDr9HfwO512Ai4I8ZABCoyAj4F1+sr7sD1jP/+p7k77Iko0Pb5NhgBFDCX0kQ==

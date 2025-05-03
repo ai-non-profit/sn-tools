@@ -1,5 +1,10 @@
 import Store from 'electron-store';
 
-const store: Store = new Store();
+export interface StoreType {
+  ytToken: string;
+  tiktokCookie: string;
+}
+
+const store: Store = new Store<StoreType>();
 
 export default store;
