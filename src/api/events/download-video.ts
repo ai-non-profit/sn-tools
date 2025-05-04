@@ -8,6 +8,7 @@ import got from "got";
 import { exec } from "child_process";
 import { getTiktokCookie } from "../dal/token";
 import { getSettings } from "../dal/setting";
+import { ffmpegPath } from "../util";
 
 const limit = pLimit(3);
 
@@ -95,7 +96,7 @@ const downloadVideo = (path: string, url: string): Promise<string> => {
 
 const cutOutro = (videoPath: string, duration: number, outroDir: string, outroDur = 5, ) => {
   return new Promise((resolve, reject) => {
-    const command = `ffmpeg -y -ss ${duration - outroDur} -i "${videoPath}" -movflags +faststart -t 5 -c copy "${outroDir}/${path.basename(videoPath)}"`;
+    const command = `${ffmpegPath} -y -ss ${duration - outroDur} -i "${videoPath}" -movflags +faststart -t 5 -c copy "${outroDir}/${path.basename(videoPath)}"`;
 
     exec(command, (err) => {
       if (err) reject(err);

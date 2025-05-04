@@ -6,6 +6,7 @@ import fs from "fs";
 import { exec } from "child_process";
 import { getSettings } from "../dal/setting";
 import { formatVideo } from "../service/video.service";
+import { ffmpegPath } from "../util";
 
 
 const initialize = (mainWindow: BrowserWindow) => {
@@ -81,7 +82,7 @@ export async function appendOutroToVideo(videoPath: string, outroPath: string, o
   console.log(content);
   fs.writeFileSync(tempListPath, content);
 
-  const cmd = `ffmpeg -y -f concat -safe 0 -i "${tempListPath}" -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k "${outputPath}/${path.basename(videoPath)}"`;
+  const cmd = `${ffmpegPath} -y -f concat -safe 0 -i "${tempListPath}" -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k "${outputPath}/${path.basename(videoPath)}"`;
 
   console.log(`Executing command: ${cmd}`);
 
