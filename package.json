@@ -9,7 +9,14 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "lint": "eslint --ext .ts,.tsx ."
+    "lint": "eslint --ext .ts,.tsx .",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.anp.sntools",
+    "mac": {
+      "target": "dmg"
+    }
   },
   "keywords": [],
   "author": {
@@ -42,6 +49,7 @@
     "@vitejs/plugin-react": "^4.4.1",
     "dotenv": "^16.5.0",
     "electron": "36.0.0",
+    "electron-builder": "^26.0.12",
     "eslint": "^8.0.1",
     "eslint-import-resolver-typescript": "^4.3.4",
     "eslint-plugin-import": "^2.25.0",
