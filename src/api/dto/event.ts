@@ -15,13 +15,13 @@ export type EditOptions = {
 };
 
 export type UploadVideoOptions = {
-  googleAccount: string;
+  googleAccount?: string;
   videos: {
     fileName: string;
     videoURL?: string; // url of the video to be uploaded
     title: string;
     description: string;
-    tags: string[];
+    tags?: string[];
     categoryId: string;
     privacyStatus: 'private' | 'public' | 'unlisted';
   }[]

@@ -5,11 +5,15 @@ import { UploadVideoOptions } from "../dto/event";
 import { google, youtube_v3 } from "googleapis";
 import fs from "fs";
 import { editDir } from "../util";
+import { getSettings } from "../dal/setting";
 
 const initialize = (mainWindow: BrowserWindow) => {
 
   ipcMain.on(IPCEvent.UPLOAD_VIDEO, async (_, data: UploadVideoOptions) => {
     console.log("upload video:");
+    const setting = getSettings();
+
+    const editDir = setting?.downloadDir + "/edited";
 
     //TODO: Handle percentage
     for (const video of data.videos) {

@@ -8,6 +8,7 @@ import { DataGrid, GridColDef, useGridApiRef } from '@mui/x-data-grid';
 import { formatViewCount } from 'src/util/common';
 import { VideoDownloads } from 'src/api/dto/event';
 import AlertDialog, { AlertProps } from 'src/dashboard/components/AlertDialog';
+import { UploadVideoOptions } from 'src/api/dto/event';
 
 const columns: GridColDef[] = [
   { field: 'item.id', headerName: 'ID', width: 90, valueGetter: (_val, row) => row.item.id },
@@ -68,7 +69,7 @@ const columns: GridColDef[] = [
 export default function Crawler() {
   const [alert, setAlert] = React.useState<AlertProps>();
   const [search, setSearch] = React.useState<string>('');
-  const [rows, setRows] = React.useState<[]>([]);
+  const [rows, setRows] = React.useState<any[]>([]);
   const [status, setStatus] = React.useState({
     download: false,
   });
@@ -129,7 +130,16 @@ export default function Crawler() {
   };
 
   const uploadYoutube = () => {
-    window.electronAPI.sendToMain(IPCEvent.LOGIN_GOOGLE, {});
+    const videos = rows.map<UploadVideoOptions['videos'][0]>((v: any) => ({
+      title: v.item.desc,
+      description: v.item.desc,
+      categoryId: '22',
+      privacyStatus: 'private',
+      fileName: v.item.id + '.' + v.item.video.format,
+    }));
+    window.electronAPI.sendToMain(IPCEvent.UPLOAD_VIDEO, {
+      videos
+    });
   };
 
   const closeAlert = () => {
@@ -176,7 +186,7 @@ export default function Crawler() {
         setIsLoading(false);
         if (data.percent === 100) {
           console.log(data);
-          setRows((rows) => [...rows.filter<any>((v: any) => data.ids[v.item.id] === 1)]);
+          setRows((rows) => rows.filter((v: any) => data.ids[v.item.id] === 1));
           setAlert({
             isOpen: true,
             title: 'Success',

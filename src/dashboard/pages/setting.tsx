@@ -6,12 +6,14 @@ import { IPCEvent } from 'src/util/constant';
 import { Settings } from 'src/api/dto/event';
 
 export default function SettingsPage() {
+  const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<Settings>({} as any);
 
   useEffect(() => {
     (async () => {
       const settings = await window.electronAPI.invokeMain<null, Settings>(IPCEvent.GET_SETTINGS);
       setSettings(settings);
+      setLoading(false);
     })();
   }, []);
 
@@ -30,8 +32,11 @@ export default function SettingsPage() {
   };
 
   const handleSave = async () => {
+    if (loading) return;
+    setLoading(true);
     // Save to electron-store or wherever
     await window.electronAPI.invokeMain<Settings, string>(IPCEvent.SAVE_SETTINGS, settings);
+    setLoading(false);
   };
 
   return (
@@ -97,7 +102,7 @@ export default function SettingsPage() {
           /> */}
         </CardContent>
         <CardActions sx={{ justifyContent: 'flex-end' }}>
-          <Button variant="contained" onClick={handleSave}>
+          <Button loading={loading} variant="contained" onClick={handleSave}>
             Save Settings
           </Button>
         </CardActions>
