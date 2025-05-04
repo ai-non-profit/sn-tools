@@ -26,3 +26,11 @@ export type UploadVideoOptions = {
     privacyStatus: 'private' | 'public' | 'unlisted';
   }[]
 }
+
+export type Settings = {
+  downloadDir: string;
+  googleAccounts: {
+    [keyof: string]: string;
+  },
+  outroPath: string;
+}

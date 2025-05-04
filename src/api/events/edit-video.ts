@@ -4,35 +4,40 @@ import { EditOptions } from "../dto/event";
 import path from "path";
 import fs from "fs";
 import { exec } from "child_process";
+import { getSettings } from "../dal/setting";
 
-const downloadDir = path.resolve("downloads/original");
-const outroDir = path.resolve("downloads/outro");
-const editDir = path.resolve("downloads/edited");
-if (!fs.existsSync(downloadDir)) fs.mkdirSync(downloadDir);
-if (!fs.existsSync(outroDir)) fs.mkdirSync(outroDir);
-if (!fs.existsSync(editDir)) fs.mkdirSync(editDir);
-
-const outroPath = path.resolve("downloads/outro.mp4");
 
 const initialize = (mainWindow: BrowserWindow) => {
+  let downloadDir = path.resolve("downloads/original");
+  let outroDir = path.resolve("downloads/outro");
+  let editDir = path.resolve("downloads/edited");
 
   ipcMain.on(IPCEvent.EDIT_VIDEO, async (event, data: EditOptions) => {
     console.log("Start edit video:", data);
 
+    const settings = getSettings();
+    downloadDir = settings.downloadDir + "/original";
+    outroDir = settings.downloadDir + "/outro";
+    editDir = settings.downloadDir + "/edited";
+    if (!fs.existsSync(downloadDir)) fs.mkdirSync(downloadDir);
+    if (!fs.existsSync(outroDir)) fs.mkdirSync(outroDir);
+    if (!fs.existsSync(editDir)) fs.mkdirSync(editDir);
+
+
     const files = fs.readdirSync(downloadDir);
     const videoFiles = files.filter(isVideoFile);
-  
+
     try {
       for (const file of videoFiles) {
         //TODO: Handle percentage
         const originPath = path.join(downloadDir, file);
         try {
-          await appendOutroToVideo(originPath, data.videoPath ?? outroPath, editDir);
+          await appendOutroToVideo(originPath, data.videoPath ?? settings.outroPath, editDir);
         } catch (err) {
           console.error(`❌ Failed to process ${file}`, err);
         }
       }
-  
+
       mainWindow.webContents.send(IPCEvent.FROM_MAIN, {
         event: IPCEvent.EDIT_VIDEO_PROGRESS,
         data: {
@@ -50,7 +55,7 @@ const initialize = (mainWindow: BrowserWindow) => {
         }
       });
     }
-    
+
     // Do something with data (like start a download process)
   });
 }

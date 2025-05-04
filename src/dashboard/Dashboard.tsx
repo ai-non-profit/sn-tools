@@ -21,6 +21,7 @@ const xThemeComponents = {
 };
 
 const Crawler = lazy(() => import('./pages/crawler'));
+const SettingsPage = lazy(() => import('./pages/setting'));
 
 
 export default function Dashboard(props: { disableCustomTheme?: boolean }) {
@@ -56,6 +57,11 @@ export default function Dashboard(props: { disableCustomTheme?: boolean }) {
               <Route path="/">
                 <Suspense fallback={<div>Loading Home...</div>}>
                   <Crawler />
+                </Suspense>
+              </Route>
+              <Route path="/settings">
+                <Suspense fallback={<div>Loading Setting...</div>}>
+                  <SettingsPage />
                 </Suspense>
               </Route>
               <Route path="/analytics" component={() => { return (<>asdf</>) }} />

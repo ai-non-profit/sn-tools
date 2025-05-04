@@ -4,29 +4,37 @@ import { VideoDownloads } from "../dto/event";
 import path from "path";
 import fs from "fs";
 import pLimit from "p-limit";
-import got from "got";
+import * as got from "got";
 import { exec } from "child_process";
 import { getTiktokCookie } from "../dal/token";
-
-const downloadDir = path.resolve("downloads/original");
-const outroDir = path.resolve("downloads/outro");
-if (!fs.existsSync(downloadDir)) fs.mkdirSync(downloadDir);
-if (!fs.existsSync(outroDir)) fs.mkdirSync(outroDir);
+import { getSettings } from "../dal/setting";
 
 const limit = pLimit(3);
 
 const initialize = (mainWindow: BrowserWindow) => {
+  let downloadDir = '';
+  let outroDir = '';
 
-  ipcMain.on(IPCEvent.DOWNLOAD_VIDEOS, async (event, data: VideoDownloads) => {
+  ipcMain.on(IPCEvent.DOWNLOAD_VIDEOS, async (_, data: VideoDownloads) => {
     console.log("start download videos:", data.length);
 
-    const tasks = data.map(({ id, url, duration }) => {
+    const settings = getSettings();
+
+    downloadDir = settings.downloadDir + "/original";
+    outroDir = settings.downloadDir + "/outro";
+
+    if (!fs.existsSync(downloadDir)) fs.mkdirSync(downloadDir);
+    if (!fs.existsSync(outroDir)) fs.mkdirSync(outroDir);
+
+    const tasks = data.map(({ id, url, duration, format = 'mp4' }) => {
       if (!url) return;
+      const filename = id + "." + format;
+      const dest = path.join(downloadDir, filename);
       return limit(() =>
-        downloadVideo(id, url, mainWindow)
-          .then(async (dest) => {
-            console.log("File downloaded to:", dest);
-            const videoPath = await cutOutro(dest, duration);
+        downloadVideo(dest, url)
+          .then(async (path) => {
+            console.log("File downloaded to:", path);
+            const videoPath = await cutOutro(path, duration);
             console.log("Outro cutted to:", videoPath);
           })
           .catch((err) => {
@@ -57,13 +65,8 @@ const initialize = (mainWindow: BrowserWindow) => {
   });
 }
 
-const downloadVideo = (id: string, url: string, mainWindow: BrowserWindow, format = "mp4"): Promise<string> => {
-  // eslint-disable-next-line no-async-promise-executor
-  const filename = id + "." + format;
-  const dest = path.join(downloadDir, filename);
-  const file = fs.createWriteStream(dest);
-
-  console.log(getTiktokCookie());
+const downloadVideo = (path: string, url: string): Promise<string> => {
+  const file = fs.createWriteStream(path);
 
   const stream = got.stream(url,
     {
@@ -82,7 +85,7 @@ const downloadVideo = (id: string, url: string, mainWindow: BrowserWindow, forma
     stream.pipe(file);
 
     stream.on('error', reject);
-    file.on('finish', () => resolve(dest));
+    file.on('finish', () => resolve(path));
     file.on('error', reject);
   });
 

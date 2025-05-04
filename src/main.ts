@@ -9,9 +9,8 @@ import initialize from './api/events/crawler-video';
 import initDownload from './api/events/download-video';
 import initLoginGoogle from './api/events/login-google';
 import initUploadVideo from './api/events/upload-video';
-import fs from 'fs';
-import { downloadDir, editDir, outroDir } from './util/constant';
 import initEdit from './api/events/edit-video';
+import initSelectFolder from './api/events/setting';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -40,6 +39,8 @@ const createWindow = () => {
   // if (!fs.existsSync(downloadDir)) fs.mkdirSync(downloadDir);
   // if (!fs.existsSync(outroDir)) fs.mkdirSync(outroDir);
   // if (!fs.existsSync(editDir)) fs.mkdirSync(editDir);
+
+  initSelectFolder(mainWindow);
 
   mainWindow.webContents.on("did-finish-load", () => {
     initialize(mainWindow);

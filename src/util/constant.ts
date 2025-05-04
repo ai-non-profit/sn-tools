@@ -9,6 +9,10 @@ export enum IPCEvent {
   LOGIN_GOOGLE = 'login-google',
   UPLOAD_VIDEO = 'upload-video',
   UPLOAD_VIDEO_PROGRESS = 'upload-video-progress',
+  SELECT_FOLDER = 'select-folder',
+  SELECT_FILE = 'select-file',
+  GET_SETTINGS = 'get-settings',
+  SAVE_SETTINGS = 'save-settings',
 }
 
 
