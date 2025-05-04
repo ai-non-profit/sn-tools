@@ -31,6 +31,10 @@ export default function SettingsPage() {
     }
   };
 
+  const handleChange = (key: string, value: any) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
+  };
+
   const handleSave = async () => {
     if (loading) return;
     setLoading(true);
@@ -90,6 +94,28 @@ export default function SettingsPage() {
             >
               Select
             </Button>
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <TextField
+              label="Max Downloads Number"
+              value={settings.maxDownloads || 0}
+              fullWidth
+              onChange={(e) => handleChange('maxDownloads', e.target.value)}
+              size='small'
+              margin="normal"
+            />
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <TextField
+              label="Max Concurrency Downloads Number"
+              value={settings.maxConcurrentDownloads || 0}
+              fullWidth
+              onChange={(e) => handleChange('maxConcurrentDownloads', e.target.value)}
+              size='small'
+              margin="normal"
+            />
           </Box>
 
           {/* <TextField

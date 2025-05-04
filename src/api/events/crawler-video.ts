@@ -3,6 +3,7 @@ import { IPCEvent } from "src/util/constant";
 import { headlessConfig, headless } from "src/api/util/headless";
 import { saveTiktokCookie } from "../dal/token";
 import { joinCookie } from "../util";
+import { getSettings } from "../dal/setting";
 
 const initialize = (mainWindow: BrowserWindow) => {
 
@@ -30,25 +31,35 @@ const tryFirstRequest = async (search: string) => {
     const browser = await headless.launch(headlessConfig);
     const page = await browser.newPage();
     // Listen for all responses
+    const settings = getSettings();
+    const result: Record<string, any>[] = [];
     page.on('response', async (response) => {
       const url = response.url();
 
       if (url.includes('/api/search/general/full')) {
         const data = await response.json(); // or response.text()
-        setTimeout(() => {
-          browser.close();
-        }, 1000);
-        resolve({
-          cookie:  await browser.cookies(),
-          headers: response.request().headers(),
-          resHeaders: response.headers(),
-          data: data.data,
-        });
+        if (data.data) {
+          result.push(...data.data);
+        }
+        if (data.length > settings.maxDownloads || !data.data?.length || !data.has_more) {
+          setTimeout(() => {
+            browser.close();
+          }, 1000);
+          return resolve({
+            cookie: await browser.cookies(),
+            headers: response.request().headers(),
+            resHeaders: response.headers(),
+            data: result,
+          });
+        }
       }
     });
 
     const url = `https://www.tiktok.com/search?q=${encodeURIComponent(search)}&t=${Date.now()}`;
     await page.goto(url, { waitUntil: "networkidle2" });
+    await page.evaluate(() => {
+      setInterval(() => window.scrollBy(0, window.innerHeight), 100);
+    });
   });
 }
 

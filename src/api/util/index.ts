@@ -1,7 +1,10 @@
 import path from "path";
 import { Cookie } from "puppeteer";
+import fs from "fs";
 
-export const ffmpegPath = path.join(process.resourcesPath, 'api', 'bin', 'ffmpeg');
+const buildPath = path.join(process.resourcesPath, 'api', 'bin', 'ffmpeg');
+
+export const ffmpegPath = fs.existsSync(buildPath) ? buildPath : path.resolve('src', 'api', 'bin', 'ffmpeg');
 
 console.log(ffmpegPath);
 

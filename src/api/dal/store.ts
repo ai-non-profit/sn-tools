@@ -1,6 +1,5 @@
 import Store from 'electron-store';
 import { Settings } from '../dto/event';
-import { downloadDir } from '../util';
 
 export interface StoreType {
   ytToken: string;
@@ -13,6 +12,8 @@ const store: Store = new Store<StoreType>({
     settings: {
       downloadDir: './downloads',
       outroFolder: './downloads/outro.mp4',
+      maxDownloads: 100,
+      maxConcurrentDownloads: 3,
     }
   }
 });

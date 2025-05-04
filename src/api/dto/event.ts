@@ -34,4 +34,6 @@ export type Settings = {
   },
   outroPath: string;
   normalizeOutroPath: string;
+  maxConcurrentDownloads: number;
+  maxDownloads: number;
 }
