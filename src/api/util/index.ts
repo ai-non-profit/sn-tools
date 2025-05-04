@@ -1,9 +1,9 @@
 import path from "path";
 import { Cookie } from "puppeteer";
 
-export const ffmpegPath = path.join(process.resourcesPath, 'bin', 'ffmpeg');
+export const ffmpegPath = path.join(process.resourcesPath, 'api', 'bin', 'ffmpeg');
 
-console.log(ffmpegPath)
+console.log(ffmpegPath);
 
 export const joinCookie = (cookies: Cookie[]): string => {
   return cookies
