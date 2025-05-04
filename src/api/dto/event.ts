@@ -33,4 +33,5 @@ export type Settings = {
     [keyof: string]: string;
   },
   outroPath: string;
+  normalizeOutroPath: string;
 }

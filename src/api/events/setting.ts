@@ -2,6 +2,8 @@ import { BrowserWindow, ipcMain, dialog } from "electron";
 import { IPCEvent } from "src/util/constant";
 import { getSettings, saveSettings } from "../dal/setting";
 import { Settings } from "../dto/event";
+import path from "path";
+import { formatVideo } from "../service/video.service";
 
 const initialize = (mainWindow: BrowserWindow) => {
   ipcMain.handle(IPCEvent.GET_SETTINGS, async (_) => {
@@ -10,6 +12,10 @@ const initialize = (mainWindow: BrowserWindow) => {
   });
   ipcMain.handle(IPCEvent.SAVE_SETTINGS, async (_, data: Settings) => {
     console.log("Save settings");
+    const inputPath = data.outroPath;
+    const normalizeOutroPath = path.resolve('downloads', 'normalize_outro.mp4');
+    await formatVideo(inputPath, normalizeOutroPath);
+    data.normalizeOutroPath = normalizeOutroPath;
     saveSettings(data);
     return true;
   });

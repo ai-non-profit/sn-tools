@@ -59,7 +59,7 @@ const columns: GridColDef[] = [
   {
     field: 'item.video.playAddr',
     headerName: 'Video',
-    minWidth: 100,
+    minWidth: 130,
     renderCell: (params) => <Button variant='contained' size="small" >View Online</Button>
   },
 
@@ -72,11 +72,19 @@ export default function Crawler() {
   const [status, setStatus] = React.useState({
     download: false,
   });
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [progress, setProgress] = React.useState<number>(0);
 
   const apiRef = useGridApiRef();
 
+  const handleKeyUp = (event: any) => {
+    if (event.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   const handleSearch = () => {
+    setIsLoading(true);
     window.electronAPI.sendToMain(IPCEvent.CRAWLER_VIDEO, {
       search
     });
@@ -92,6 +100,7 @@ export default function Crawler() {
         type: 'warning'
       });
     }
+    setIsLoading(true);
     setStatus((status) => ({
       ...status,
       download: false
@@ -111,6 +120,7 @@ export default function Crawler() {
   };
 
   const handleAppendOutro = () => {
+    setIsLoading(true);
     setStatus((status) => ({
       ...status,
       append: true
@@ -118,7 +128,7 @@ export default function Crawler() {
     window.electronAPI.sendToMain(IPCEvent.EDIT_VIDEO, {});
   };
 
-  const testLoginGoogle = () => {
+  const uploadYoutube = () => {
     window.electronAPI.sendToMain(IPCEvent.LOGIN_GOOGLE, {});
   };
 
@@ -131,9 +141,13 @@ export default function Crawler() {
       if (event === IPCEvent.SHOW_VIDEO) {
         setRows(data);
         setStatus(status => ({ ...status, download: !!data.length }));
+        setIsLoading(false);
         return;
       }
       if (event === IPCEvent.DOWNLOAD_PROGRESS) {
+        console.log(data);
+        setIsLoading(false);
+        setStatus(status => ({ ...status, download: true }));
         if (data.error) {
           setAlert({
             isOpen: true,
@@ -145,7 +159,6 @@ export default function Crawler() {
           return;
         }
         if (data.percent === 100) {
-          setStatus(status => ({ ...status, download: true }));
           setProgress(100);
           setTimeout(() => {
             setProgress(0);
@@ -160,7 +173,10 @@ export default function Crawler() {
         }
       }
       if (event === IPCEvent.EDIT_VIDEO_PROGRESS) {
+        setIsLoading(false);
         if (data.percent === 100) {
+          console.log(data);
+          setRows((rows) => [...rows.filter<any>((v: any) => data.ids[v.item.id] === 1)]);
           setAlert({
             isOpen: true,
             title: 'Success',
@@ -198,6 +214,7 @@ export default function Crawler() {
                 value={search}
                 id="search"
                 placeholder="Search video on tiktok"
+                onKeyUp={handleKeyUp}
                 onChange={(e) => setSearch(e.target.value)}
                 startAdornment={
                   <InputAdornment position="start" sx={{ color: 'text.primary' }}>
@@ -227,23 +244,25 @@ export default function Crawler() {
           <Button variant="contained" size="small" onClick={handleAppendOutro}>
             Append Outro
           </Button>
-          <Button variant="contained" size="small" onClick={testLoginGoogle}>
-            Test Login Google
+          <Button variant="contained" size="small" onClick={uploadYoutube}>
+            Upload Youtube
           </Button>
         </CardActions>
       </Card>
-      { progress > 0 && <LinearProgress variant="determinate" value={progress} /> }
-      <Box sx={{ width: '100%' }}>
+      {progress > 0 && <LinearProgress variant="determinate" value={progress} />}
+      <Box sx={{ flexGrow: 1, height: '100%', width: '100%' }}>
         <DataGrid
           apiRef={apiRef}
           rows={rows}
           columns={columns}
+          autoHeight
           getRowId={row => row.item.id}
           checkboxSelection
           disableRowSelectionOnClick
           disableColumnSelector
           disableDensitySelector
           getRowHeight={() => 210}
+          loading={isLoading}
         />
       </Box>
       <AlertDialog

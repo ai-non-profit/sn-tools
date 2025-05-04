@@ -5,6 +5,7 @@ import path from "path";
 import fs from "fs";
 import { exec } from "child_process";
 import { getSettings } from "../dal/setting";
+import { formatVideo } from "../service/video.service";
 
 
 const initialize = (mainWindow: BrowserWindow) => {
@@ -24,15 +25,18 @@ const initialize = (mainWindow: BrowserWindow) => {
     if (!fs.existsSync(editDir)) fs.mkdirSync(editDir);
 
 
-    const files = fs.readdirSync(downloadDir);
+    const files = fs.readdirSync(outroDir);
     const videoFiles = files.filter(isVideoFile);
 
+    const ids: Record<string, number> = {};
     try {
       for (const file of videoFiles) {
+        ids[file.split(".")[0]] = 1;
         //TODO: Handle percentage
         const originPath = path.join(downloadDir, file);
         try {
-          await appendOutroToVideo(originPath, data.videoPath ?? settings.outroPath, editDir);
+          await appendOutroToVideo(originPath, data.videoPath ?? settings.normalizeOutroPath, editDir);
+          fs.unlinkSync(path.join(outroDir, file));
         } catch (err) {
           console.error(`❌ Failed to process ${file}`, err);
         }
@@ -42,6 +46,7 @@ const initialize = (mainWindow: BrowserWindow) => {
         event: IPCEvent.EDIT_VIDEO_PROGRESS,
         data: {
           percent: 100,
+          ids
         }
       });
     } catch (err) {
@@ -65,17 +70,26 @@ function isVideoFile(filename: string): boolean {
 }
 
 
-export function appendOutroToVideo(videoPath: string, outroPath: string, outputPath: string): Promise<void> {
-  const tempListPath = path.join(path.dirname(videoPath), 'concat_list.txt');
+export async function appendOutroToVideo(videoPath: string, outroPath: string, outputPath: string): Promise<void> {
+  const dirname = path.dirname(videoPath);
+  const tempListPath = path.join(dirname, 'concat_list.txt');
 
-  const content = `file '${videoPath.replace(/'/g, "'\\''")}'\nfile '${outroPath.replace(/'/g, "'\\''")}'`;
+  const normalizePath = path.join(dirname, 'normalize_' + path.basename(videoPath));
+  await formatVideo(videoPath, normalizePath);
+
+  const content = `file '${normalizePath.replace(/'/g, "'\\''")}'\nfile '${outroPath.replace(/'/g, "'\\''")}'`;
+  console.log(content);
   fs.writeFileSync(tempListPath, content);
 
-  const cmd = `ffmpeg -y -f concat -safe 0 -i "${tempListPath}" -c copy "${outputPath}/${path.basename(videoPath)}"`;
+  const cmd = `ffmpeg -y -f concat -safe 0 -i "${tempListPath}" -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k "${outputPath}/${path.basename(videoPath)}"`;
+
+  console.log(`Executing command: ${cmd}`);
 
   return new Promise((resolve, reject) => {
     exec(cmd, (err, stdout, stderr) => {
       fs.unlinkSync(tempListPath); // clean up
+      fs.unlinkSync(normalizePath);
+      fs.unlinkSync(videoPath);
       if (err) {
         console.error(stderr);
         return reject(err);
