@@ -4,7 +4,7 @@ import { VideoDownloads } from "../dto/event";
 import path from "path";
 import fs from "fs";
 import pLimit from "p-limit";
-import * as got from "got";
+import got from "got";
 import { exec } from "child_process";
 import { getTiktokCookie } from "../dal/token";
 import { getSettings } from "../dal/setting";
@@ -34,7 +34,7 @@ const initialize = (mainWindow: BrowserWindow) => {
         downloadVideo(dest, url)
           .then(async (path) => {
             console.log("File downloaded to:", path);
-            const videoPath = await cutOutro(path, duration);
+            const videoPath = await cutOutro(path, duration, outroDir);
             console.log("Outro cutted to:", videoPath);
           })
           .catch((err) => {
@@ -45,6 +45,7 @@ const initialize = (mainWindow: BrowserWindow) => {
 
     Promise.all(tasks)
       .then(() => {
+        console.log("All files downloaded");
         mainWindow.webContents.send(IPCEvent.FROM_MAIN, {
           event: IPCEvent.DOWNLOAD_PROGRESS,
           data: {
@@ -53,6 +54,7 @@ const initialize = (mainWindow: BrowserWindow) => {
           }
         });
       }).catch((err) => {
+        console.error("Error downloading files:", err.message);
         mainWindow.webContents.send(IPCEvent.FROM_MAIN, {
           event: IPCEvent.DOWNLOAD_PROGRESS,
           data: {
@@ -91,7 +93,7 @@ const downloadVideo = (path: string, url: string): Promise<string> => {
 
 };
 
-const cutOutro = (videoPath: string, duration: number, outroDur = 5) => {
+const cutOutro = (videoPath: string, duration: number, outroDir: string, outroDur = 5, ) => {
   return new Promise((resolve, reject) => {
     const command = `ffmpeg -y -ss ${duration - outroDur} -i "${videoPath}" -movflags +faststart -t 5 -c copy "${outroDir}/${path.basename(videoPath)}"`;
 
