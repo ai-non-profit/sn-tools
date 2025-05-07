@@ -1,7 +1,7 @@
 {
   "name": "sn-tools",
   "productName": "sn-tools",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "My Electron application description",
   "main": ".vite/build/main.js",
   "scripts": {
@@ -16,7 +16,20 @@
     "appId": "com.anp.sntools",
     "mac": {
       "target": "dmg"
-    }
+    },
+    "files": [
+      "**/*",
+      "bin/**"
+    ],
+    "extraResources": [
+      {
+        "from": "bin/",
+        "to": "bin",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
   },
   "keywords": [],
   "author": {
@@ -66,6 +79,7 @@
     "@mui/icons-material": "^7.0.2",
     "@mui/x-data-grid": "^8.1.0",
     "@mui/x-tree-view": "^8.1.0",
+    "electron-is-dev": "^3.0.1",
     "electron-squirrel-startup": "^1.0.1",
     "electron-store": "^10.0.1",
     "googleapis": "^148.0.0",

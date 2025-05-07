@@ -1,12 +1,11 @@
 import path from "path";
 import { Cookie } from "puppeteer";
-import fs from "fs";
+import isDev from "electron-is-dev";
 
-const buildPath = path.join(process.resourcesPath, 'api', 'bin', 'ffmpeg');
-
-export const ffmpegPath = fs.existsSync(buildPath) ? buildPath : path.resolve('.', 'src', 'api', 'bin', 'ffmpeg');
-
-console.log(ffmpegPath);
+export const ffmpegPath =
+  isDev
+    ? path.join(__dirname, 'bin', process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg')
+    : path.join(process.resourcesPath, 'bin', process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg');
 
 export const joinCookie = (cookies: Cookie[]): string => {
   return cookies
