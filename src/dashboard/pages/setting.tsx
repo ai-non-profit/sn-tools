@@ -39,8 +39,13 @@ export default function SettingsPage() {
     if (loading) return;
     setLoading(true);
     // Save to electron-store or wherever
-    await window.electronAPI.invokeMain<Settings, string>(IPCEvent.SAVE_SETTINGS, settings);
-    setLoading(false);
+    try {
+      await window.electronAPI.invokeMain<Settings, string>(IPCEvent.SAVE_SETTINGS, settings);
+    } catch (error) {
+      console.log('Error saving settings:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

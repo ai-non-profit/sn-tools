@@ -13,7 +13,7 @@ const initialize = (mainWindow: BrowserWindow) => {
   ipcMain.handle(IPCEvent.SAVE_SETTINGS, async (_, data: Settings) => {
     console.log("Save settings");
     const inputPath = data.outroPath;
-    const normalizeOutroPath = path.resolve('downloads', 'normalize_outro.mp4');
+    const normalizeOutroPath = path.join(data.downloadDir, 'normalize_outro.mp4');
     await formatVideo(inputPath, normalizeOutroPath);
     data.normalizeOutroPath = normalizeOutroPath;
     saveSettings(data);
