@@ -4,7 +4,7 @@ import fs from "fs";
 
 const buildPath = path.join(process.resourcesPath, 'api', 'bin', 'ffmpeg');
 
-export const ffmpegPath = fs.existsSync(buildPath) ? buildPath : path.resolve('src', 'api', 'bin', 'ffmpeg');
+export const ffmpegPath = fs.existsSync(buildPath) ? buildPath : path.resolve('.', 'src', 'api', 'bin', 'ffmpeg');
 
 console.log(ffmpegPath);
 
