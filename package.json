@@ -82,6 +82,7 @@
     "electron-is-dev": "^3.0.1",
     "electron-squirrel-startup": "^1.0.1",
     "electron-store": "^10.0.1",
+    "fix-path": "^4.0.0",
     "googleapis": "^148.0.0",
     "got": "^14.4.7",
     "open": "^10.1.2",

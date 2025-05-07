@@ -11,6 +11,9 @@ import initLoginGoogle from './api/events/login-google';
 import initUploadVideo from './api/events/upload-video';
 import initEdit from './api/events/edit-video';
 import initSelectFolder from './api/events/setting';
+import fixPath from 'fix-path';
+
+fixPath();
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
