@@ -4,31 +4,57 @@ import { getAuthenticatedClient } from "../service/google.service";
 import { UploadVideoOptions } from "../dto/event";
 import { google, youtube_v3 } from "googleapis";
 import fs from "fs";
-import { editDir } from "../util";
 import { getSettings } from "../dal/setting";
+
+let isProcessing = false;
 
 const initialize = (mainWindow: BrowserWindow) => {
 
   ipcMain.on(IPCEvent.UPLOAD_VIDEO, async (_, data: UploadVideoOptions) => {
-    console.log("upload video:");
+    if (isProcessing) {
+      mainWindow.webContents.send(IPCEvent.UPLOAD_VIDEO_PROGRESS, {
+        event: IPCEvent.UPLOAD_VIDEO_PROGRESS,
+        data: {
+          error: true,
+          message: "Upload in progress",
+          percent: 50
+        }
+      });
+      return;
+    }
+    console.log("upload video:", data);
     const setting = getSettings();
 
     const editDir = setting?.downloadDir + "/edited";
 
-    //TODO: Handle percentage
-    for (const video of data.videos) {
-      const filePath = video.videoURL ?? editDir + "/" + video.fileName;
+    try {
+      //TODO: Handle percentage
+      for (const video of data.videos) {
+        const filePath = video.videoURL ?? editDir + "/" + video.fileName;
 
-      const res = await uploadVideo(filePath, video);
-      console.log('Upload response:', res);
+        const res = await uploadVideo(filePath, video);
+        console.log('Upload response:', res);
+      }
+
+      mainWindow.webContents.send(IPCEvent.UPLOAD_VIDEO_PROGRESS, {
+        event: IPCEvent.UPLOAD_VIDEO_PROGRESS,
+        data: {
+          percent: 100
+        }
+      });
+    } catch (err) {
+      mainWindow.webContents.send(IPCEvent.UPLOAD_VIDEO_PROGRESS, {
+        event: IPCEvent.UPLOAD_VIDEO_PROGRESS,
+        data: {
+          error: err.message,
+          message: "Upload failed",
+          percent: 0
+        }
+      });
+    } finally {
+      isProcessing = false;
     }
 
-    mainWindow.webContents.send(IPCEvent.UPLOAD_VIDEO_PROGRESS, {
-      event: IPCEvent.UPLOAD_VIDEO_PROGRESS,
-      data: {
-        percent: 100
-      }
-    });
 
     // Do something with data (like start a download process)
   });

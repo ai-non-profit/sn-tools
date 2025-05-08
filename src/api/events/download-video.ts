@@ -6,7 +6,6 @@ import fs from "fs";
 import pLimit from "p-limit";
 import got from "got";
 import { exec } from "child_process";
-import { getTiktokCookie } from "../dal/token";
 import { getSettings } from "../dal/setting";
 import { ffmpegPath } from "../util";
 
@@ -20,6 +19,7 @@ const initialize = (mainWindow: BrowserWindow) => {
     console.log("start download videos:", data.length);
 
     const settings = getSettings();
+    console.log(settings.tiktokCookies);
 
     downloadDir = settings.downloadDir + "/original";
     outroDir = settings.downloadDir + "/outro";
@@ -32,7 +32,7 @@ const initialize = (mainWindow: BrowserWindow) => {
       const filename = id + "." + format;
       const dest = path.join(downloadDir, filename);
       return limit(() =>
-        downloadVideo(dest, url)
+        downloadVideo(dest, url, settings.tiktokCookies)
           .then(async (path) => {
             console.log("File downloaded to:", path);
             const videoPath = await cutOutro(path, duration, outroDir);
@@ -68,14 +68,14 @@ const initialize = (mainWindow: BrowserWindow) => {
   });
 }
 
-const downloadVideo = (path: string, url: string): Promise<string> => {
+const downloadVideo = (path: string, url: string, cookies: string): Promise<string> => {
   const file = fs.createWriteStream(path);
 
   const stream = got.stream(url,
     {
       http2: true,
       headers: {
-        'cookie': getTiktokCookie(),
+        'cookie': cookies,
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122 Safari/537.36',
         'Referer': 'https://www.tiktok.com/',
         'Accept': '*/*',

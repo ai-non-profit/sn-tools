@@ -17,9 +17,10 @@ import CardActions from '@mui/material/CardActions';
 import LinearProgress from '@mui/material/LinearProgress';
 import { DataGrid } from '@mui/x-data-grid/DataGrid';
 import { useGridApiRef } from '@mui/x-data-grid';
+import { app } from 'electron';
 
 const columns: GridColDef[] = [
-  { field: 'item.id', headerName: 'ID', width: 90, valueGetter: (_val, row) => row.item.id },
+  { field: 'item.id', headerName: 'ID', width: 90, valueGetter: (_val, row) => row.id },
   {
     flex: 0.025,
     field: 'item.video.cover',
@@ -27,7 +28,7 @@ const columns: GridColDef[] = [
     minWidth: 200,
     renderCell: (params: any) => (
       <img
-        src={params.row.item.video.cover}
+        src={params.row.video.cover}
         alt="item"
         loading="lazy"
         style={{ width: 150, height: 200, objectFit: 'cover', borderRadius: 4, margin: 5 }}
@@ -36,17 +37,16 @@ const columns: GridColDef[] = [
   },
   {
     flex: 0.1,
-    field: 'item',
+    field: 'desc',
     headerName: 'Description',
     minWidth: 150,
-    valueGetter: (_val, row) => row.item.desc
   },
   {
     field: 'item.stats.diggCount',
     headerName: 'Digg',
     minWidth: 80,
     type: 'number',
-    valueGetter: (_val, row) => row.item.stats.diggCount,
+    valueGetter: (_val, row) => row.stats.diggCount,
     valueFormatter: formatViewCount,
   },
   {
@@ -54,7 +54,7 @@ const columns: GridColDef[] = [
     headerName: 'View',
     minWidth: 80,
     type: 'number',
-    valueGetter: (_val, row) => row.item.stats.playCount,
+    valueGetter: (_val, row) => row.stats.playCount,
     valueFormatter: formatViewCount,
   },
   {
@@ -62,7 +62,7 @@ const columns: GridColDef[] = [
     headerName: 'Share',
     minWidth: 80,
     type: 'number',
-    valueGetter: (_val, row) => row.item.stats.shareCount,
+    valueGetter: (_val, row) => row.stats.shareCount,
     valueFormatter: formatViewCount,
   },
   {
@@ -80,9 +80,12 @@ export default function Crawler() {
   const [rows, setRows] = React.useState<any[]>([]);
   const [status, setStatus] = React.useState({
     download: false,
+    append: false,
+    upload: false,
   });
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [progress, setProgress] = React.useState<number>(0);
+  const [limit, setLimit] = React.useState<number>(0);
 
   const apiRef = useGridApiRef();
 
@@ -97,6 +100,7 @@ export default function Crawler() {
     setIsLoading(true);
     const params = new URLSearchParams({
       search,
+      limit: limit.toString(),
     });
     fetch(`https://dev.bbltech.org/headless-browser/api/v1/tiktok/search?${params.toString()}`)
       .then((res) => res.json())
@@ -118,7 +122,7 @@ export default function Crawler() {
         }));
         setIsLoading(false);
         window.electronAPI.invokeMain(IPCEvent.SAVE_SETTINGS, {
-          tiktokCookies: data.cookies,
+          tiktokCookies: data.cookie,
         }).then(() => { console.log('Save cookies success'); });
       });
   };
@@ -136,17 +140,18 @@ export default function Crawler() {
     setIsLoading(true);
     setStatus((status) => ({
       ...status,
+      upload: false,
       download: false
     }));
     setProgress(50);
     const videos: VideoDownloads = [];
     rows.forEach((v: any) => {
-      if (!selectedRows.has(v.item.id)) return;
+      if (!selectedRows.has(v.id)) return;
       videos.push(({
-        id: v.item.id,
-        url: v.item.video.downloadAddr ?? v.item.video.playAddr,
-        format: v.item.video.format,
-        duration: v.item.video.duration,
+        id: v.id,
+        url: v.video.downloadAddr ?? v.video.playAddr,
+        format: v.video.format,
+        duration: v.video.duration,
       }));
     });
     window.electronAPI.sendToMain<VideoDownloads>(IPCEvent.DOWNLOAD_VIDEOS, videos);
@@ -162,12 +167,17 @@ export default function Crawler() {
   };
 
   const uploadYoutube = () => {
-    const videos = rows.map<UploadVideoOptions['videos'][0]>((v: any) => ({
-      title: v.item.desc,
-      description: v.item.desc,
+    const selectedRows = apiRef.current.getSelectedRows();
+    setStatus((status) => ({
+      ...status,
+      upload: false
+    }));
+    const videos = rows.filter(w => selectedRows.has(w.id)).map<UploadVideoOptions['videos'][0]>((v: any) => ({
+      title: v.desc,
+      description: v.desc,
       categoryId: '22',
       privacyStatus: 'private',
-      fileName: v.item.id + '.' + v.item.video.format,
+      fileName: v.id + '.' + v.video.format,
     }));
     window.electronAPI.sendToMain(IPCEvent.UPLOAD_VIDEO, {
       videos
@@ -175,7 +185,7 @@ export default function Crawler() {
   };
 
   const closeAlert = () => {
-    setAlert(alert => ({ ...alert, isOpen: false }));
+    setAlert((alert: any) => ({ ...alert, isOpen: false }));
   }
 
   React.useEffect(() => {
@@ -183,7 +193,7 @@ export default function Crawler() {
       if (event === IPCEvent.DOWNLOAD_PROGRESS) {
         console.log(data);
         setIsLoading(false);
-        setStatus(status => ({ ...status, download: true }));
+        setStatus(status => ({ ...status, download: true, append: true, upload: false }));
         if (data.error) {
           setAlert({
             isOpen: true,
@@ -210,9 +220,10 @@ export default function Crawler() {
       }
       if (event === IPCEvent.EDIT_VIDEO_PROGRESS) {
         setIsLoading(false);
+        setStatus(status => ({ ...status, append: false, upload: true }));
         if (data.percent === 100) {
           console.log(data);
-          setRows((rows) => rows.filter((v: any) => data.ids[v.item.id] === 1));
+          setRows((rows) => rows.filter((v: any) => data.ids[v.id] === 1));
           setAlert({
             isOpen: true,
             title: 'Success',
@@ -231,7 +242,32 @@ export default function Crawler() {
           return;
         }
       }
+      if (event === IPCEvent.UPLOAD_VIDEO_PROGRESS) {
+        setStatus(status => ({ ...status, upload: true }));
+        if (data.percent === 100) {
+          setAlert({
+            isOpen: true,
+            title: 'Success',
+            message: 'Upload video completed',
+            type: 'success'
+          });
+          return;
+        }
+        if (data.error) {
+          setAlert({
+            isOpen: true,
+            title: 'Error',
+            message: data.message ?? data.error,
+            type: 'error'
+          });
+          return;
+        }
+      }
     });
+    (async () => {
+      const settings = await window.electronAPI.invokeMain<null, Settings>(IPCEvent.GET_SETTINGS);
+      setLimit(settings.maxDownloads);
+    })();
   }, []);
 
 
@@ -278,10 +314,10 @@ export default function Crawler() {
           <Button variant="contained" size="small" onClick={handleDownloadAll} disabled={!status.download}>
             Download
           </Button>
-          <Button variant="contained" size="small" onClick={handleAppendOutro}>
+          <Button variant="contained" size="small" onClick={handleAppendOutro} disabled={!status.append}>
             Append Outro
           </Button>
-          <Button variant="contained" size="small" onClick={uploadYoutube}>
+          <Button variant="contained" size="small" onClick={uploadYoutube} disabled={!status.upload}>
             Upload Youtube
           </Button>
         </CardActions>
@@ -293,13 +329,19 @@ export default function Crawler() {
           rows={rows}
           columns={columns}
           autoHeight
-          getRowId={row => row.item.id}
+          getRowId={row => row.id}
           checkboxSelection
           disableRowSelectionOnClick
           disableColumnSelector
+          pageSizeOptions={[20, 50, 100]}
           disableDensitySelector
           getRowHeight={() => 210}
           loading={isLoading}
+          initialState={{
+            pagination: {
+              paginationModel: { pageSize: 20, page: 0 },
+            },
+          }}
         />
       </Box>
       <AlertDialog
