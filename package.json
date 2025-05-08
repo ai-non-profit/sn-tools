@@ -73,9 +73,6 @@
     "got": "^14.4.7",
     "open": "^10.1.2",
     "p-limit": "^6.2.0",
-    "puppeteer": "^24.7.2",
-    "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "wouter": "^3.7.0"
   },
   "jest": {

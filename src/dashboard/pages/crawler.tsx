@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { IPCEvent } from 'src/util/constant';
 import { formatViewCount } from 'src/util/common';
-import { VideoDownloads , UploadVideoOptions } from 'src/api/dto/event';
+import { VideoDownloads, UploadVideoOptions, Settings } from 'src/api/dto/event';
 import AlertDialog, { AlertProps } from 'src/dashboard/components/AlertDialog';
 import type { GridColDef } from '@mui/x-data-grid/models/colDef/gridColDef';
 import Button from '@mui/material/Button';
@@ -87,6 +87,7 @@ export default function Crawler() {
   const apiRef = useGridApiRef();
 
   const handleKeyUp = (event: any) => {
+    if (isLoading) return;
     if (event.key === 'Enter') {
       handleSearch();
     }
@@ -94,9 +95,32 @@ export default function Crawler() {
 
   const handleSearch = () => {
     setIsLoading(true);
-    window.electronAPI.sendToMain(IPCEvent.CRAWLER_VIDEO, {
-      search
+    const params = new URLSearchParams({
+      search,
     });
+    fetch(`https://dev.bbltech.org/headless-browser/api/v1/tiktok/search?${params.toString()}`)
+      .then((res) => res.json())
+      .then(({ data, statusCode }) => {
+        if (statusCode !== 200) {
+          setAlert({
+            isOpen: true,
+            title: 'Error',
+            message: data.message,
+            type: 'error'
+          });
+          setIsLoading(false);
+          return;
+        }
+        setRows(data.videos);
+        setStatus((status) => ({
+          ...status,
+          download: !!data.videos.length
+        }));
+        setIsLoading(false);
+        window.electronAPI.invokeMain(IPCEvent.SAVE_SETTINGS, {
+          tiktokCookies: data.cookies,
+        }).then(() => { console.log('Save cookies success'); });
+      });
   };
 
   const handleDownloadAll = () => {
@@ -156,12 +180,6 @@ export default function Crawler() {
 
   React.useEffect(() => {
     window.electronAPI?.onMessageFromMain(({ event, data }) => {
-      if (event === IPCEvent.SHOW_VIDEO) {
-        setRows(data);
-        setStatus(status => ({ ...status, download: !!data.length }));
-        setIsLoading(false);
-        return;
-      }
       if (event === IPCEvent.DOWNLOAD_PROGRESS) {
         console.log(data);
         setIsLoading(false);
@@ -249,6 +267,7 @@ export default function Crawler() {
               size="medium"
               onClick={handleSearch}
               sx={{ whiteSpace: 'nowrap' }}
+              disabled={isLoading}
             >
               Search
             </Button>

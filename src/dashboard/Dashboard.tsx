@@ -8,13 +8,10 @@ import AppNavbar from './components/AppNavbar';
 import Header from './components/Header';
 import SideMenu from './components/SideMenu';
 import AppTheme from '../shared-theme/AppTheme';
-import {
-  treeViewCustomizations,
-} from './theme/customizations';
 import { Route, Router } from 'wouter';
 
 const xThemeComponents = {
-  ...treeViewCustomizations,
+  // ...treeViewCustomizations,
 };
 
 const Crawler = React.lazy(() => import('./pages/crawler'));

@@ -1,11 +1,6 @@
-import dotenv from 'dotenv';
-// eslint-disable-next-line import/no-named-as-default-member
-dotenv.config();
-
 import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
-import initialize from './api/events/crawler-video';
 import initDownload from './api/events/download-video';
 import initLoginGoogle from './api/events/login-google';
 import initUploadVideo from './api/events/upload-video';
@@ -52,7 +47,6 @@ const createWindow = () => {
   initVersion(mainWindow);
 
   mainWindow.webContents.on("did-finish-load", () => {
-    initialize(mainWindow);
     initDownload(mainWindow);
     initEdit(mainWindow);
     initLoginGoogle(mainWindow);

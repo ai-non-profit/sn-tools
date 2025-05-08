@@ -10,13 +10,15 @@ const initialize = (mainWindow: BrowserWindow) => {
     console.log("Get settings");
     return getSettings();
   });
-  ipcMain.handle(IPCEvent.SAVE_SETTINGS, async (_, data: Settings) => {
+  ipcMain.handle(IPCEvent.SAVE_SETTINGS, async (_, data: Partial<Settings>) => {
     console.log("Save settings");
-    const inputPath = data.outroPath;
-    const normalizeOutroPath = path.join(data.downloadDir, 'normalize_outro.mp4');
-    await formatVideo(inputPath, normalizeOutroPath);
-    data.normalizeOutroPath = normalizeOutroPath;
-    saveSettings(data);
+    const currSettings = getSettings();
+    if (currSettings.outroPath !== data.outroPath) {
+      const normalizeOutroPath = path.join(data.downloadDir, 'normalize_outro.mp4');
+      await formatVideo(data.outroPath, normalizeOutroPath);
+      data.normalizeOutroPath = normalizeOutroPath;
+    }
+    saveSettings({ ...currSettings, ...data });
     return true;
   });
 

@@ -29,6 +29,7 @@ export type UploadVideoOptions = {
 
 export type Settings = {
   downloadDir: string;
+  tiktokCookies: string;
   googleAccounts: {
     [keyof: string]: string;
   },

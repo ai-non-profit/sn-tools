@@ -23,12 +23,6 @@ const mainListItems = [
   { text: 'Tasks', icon: <AssignmentRoundedIcon /> },
 ];
 
-const secondaryListItems = [
-  { text: 'Settings', icon: <SettingsRoundedIcon /> },
-  { text: 'About', icon: <InfoRoundedIcon /> },
-  { text: 'Feedback', icon: <HelpRoundedIcon /> },
-];
-
 export default function MenuContent() {
   const [location] = useLocation();
   const [version, setVersion] = React.useState<string | null>(null);
@@ -55,14 +49,6 @@ export default function MenuContent() {
         ))}
       </List>
       <List dense>
-        {secondaryListItems.map((item, index) => (
-          <ListItem key={index} disablePadding sx={{ display: 'block' }}>
-            <ListItemButton>
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
         <ListItem key='version' disablePadding sx={{ display: 'block' }}>
             <ListItemButton>
             <ListItemIcon><InfoOutline /></ListItemIcon>

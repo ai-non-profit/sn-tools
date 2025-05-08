@@ -4,10 +4,9 @@ import http from 'http';
 import { getTokens, saveTokens } from '../dal/token';
 
 export async function getAuthenticatedClient() {
-  const CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID;
-  const CLIENT_SECRET = process.env.VITE_GOOGLE_CLIENT_SECRET;
+  const CLIENT_ID = '297448176893-vmdvt5uvt2i8j5gh1iqab5v0bee7ht1h.apps.googleusercontent.com';
+  const CLIENT_SECRET = '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';
   const REDIRECT_URI = 'http://localhost:3000/oauth2callback';
-  console.log(CLIENT_ID, CLIENT_SECRET);
   const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
   const tokens = getTokens();
   if (tokens) {
