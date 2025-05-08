@@ -1,8 +1,8 @@
 import * as React from 'react';
 import Badge, { badgeClasses } from '@mui/material/Badge';
-import IconButton, { IconButtonProps } from '@mui/material/IconButton';
+import IconButton from '@mui/material/IconButton';
 
-export interface MenuButtonProps extends IconButtonProps {
+export interface MenuButtonProps extends Record<string, any> {
   showBadge?: boolean;
 }
 

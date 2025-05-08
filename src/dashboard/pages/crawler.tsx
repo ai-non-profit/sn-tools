@@ -1,14 +1,22 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import { Button, Card, CardActions, CardContent, FormControl, InputAdornment, LinearProgress, OutlinedInput, } from '@mui/material';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { IPCEvent } from 'src/util/constant';
-import { DataGrid, GridColDef, useGridApiRef } from '@mui/x-data-grid';
 import { formatViewCount } from 'src/util/common';
-import { VideoDownloads } from 'src/api/dto/event';
+import { VideoDownloads , UploadVideoOptions } from 'src/api/dto/event';
 import AlertDialog, { AlertProps } from 'src/dashboard/components/AlertDialog';
-import { UploadVideoOptions } from 'src/api/dto/event';
+import type { GridColDef } from '@mui/x-data-grid/models/colDef/gridColDef';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import FormControl from '@mui/material/FormControl';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import InputAdornment from '@mui/material/InputAdornment';
+import CardActions from '@mui/material/CardActions';
+import LinearProgress from '@mui/material/LinearProgress';
+import { DataGrid } from '@mui/x-data-grid/DataGrid';
+import { useGridApiRef } from '@mui/x-data-grid';
 
 const columns: GridColDef[] = [
   { field: 'item.id', headerName: 'ID', width: 90, valueGetter: (_val, row) => row.item.id },

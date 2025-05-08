@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Card, CardContent, CardActions, Button, TextField, Typography, Box,
-} from '@mui/material';
+
 import { IPCEvent } from 'src/util/constant';
 import { Settings } from 'src/api/dto/event';
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import CardActions from '@mui/material/CardActions';
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);

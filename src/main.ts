@@ -12,6 +12,7 @@ import initUploadVideo from './api/events/upload-video';
 import initEdit from './api/events/edit-video';
 import initSelectFolder from './api/events/setting';
 import fixPath from 'fix-path';
+import initVersion from './api/events/version';
 
 fixPath();
 
@@ -19,6 +20,9 @@ fixPath();
 if (started) {
   app.quit();
 }
+
+app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors');
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=1024');
 
 const createWindow = () => {
   // Create the browser window.
@@ -28,6 +32,7 @@ const createWindow = () => {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
+      sandbox: true,
       nodeIntegration: false,
     },
   });
@@ -44,6 +49,7 @@ const createWindow = () => {
   // if (!fs.existsSync(editDir)) fs.mkdirSync(editDir);
 
   initSelectFolder(mainWindow);
+  initVersion(mainWindow);
 
   mainWindow.webContents.on("did-finish-load", () => {
     initialize(mainWindow);

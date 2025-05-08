@@ -12,16 +12,13 @@ import {
   treeViewCustomizations,
 } from './theme/customizations';
 import { Route, Router } from 'wouter';
-// eslint-disable-next-line import/no-unresolved
-import MainGrid from './components/MainGrid';
-import { lazy, Suspense } from 'react';
 
 const xThemeComponents = {
   ...treeViewCustomizations,
 };
 
-const Crawler = lazy(() => import('./pages/crawler'));
-const SettingsPage = lazy(() => import('./pages/setting'));
+const Crawler = React.lazy(() => import('./pages/crawler'));
+const SettingsPage = React.lazy(() => import('./pages/setting'));
 
 
 export default function Dashboard(props: { disableCustomTheme?: boolean }) {
@@ -55,14 +52,14 @@ export default function Dashboard(props: { disableCustomTheme?: boolean }) {
             <Router base="/">
               {/* <Route path="/" component={MainGrid} /> */}
               <Route path="/">
-                <Suspense fallback={<div>Loading Home...</div>}>
+                <React.Suspense fallback={<div>Loading Home...</div>}>
                   <Crawler />
-                </Suspense>
+                </React.Suspense>
               </Route>
               <Route path="/settings">
-                <Suspense fallback={<div>Loading Setting...</div>}>
+                <React.Suspense fallback={<div>Loading Setting...</div>}>
                   <SettingsPage />
-                </Suspense>
+                </React.Suspense>
               </Route>
               <Route path="/analytics" component={() => { return (<>asdf</>) }} />
             </Router>

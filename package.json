@@ -1,7 +1,7 @@
 {
   "name": "sn-tools",
   "productName": "sn-tools",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "My Electron application description",
   "main": ".vite/build/main.js",
   "scripts": {
@@ -16,20 +16,7 @@
     "appId": "com.anp.sntools",
     "mac": {
       "target": "dmg"
-    },
-    "files": [
-      "**/*",
-      "bin/**"
-    ],
-    "extraResources": [
-      {
-        "from": "bin/",
-        "to": "bin",
-        "filter": [
-          "**/*"
-        ]
-      }
-    ]
+    }
   },
   "keywords": [],
   "author": {
@@ -60,7 +47,6 @@
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
     "@vitejs/plugin-react": "^4.4.1",
-    "dotenv": "^16.5.0",
     "electron": "36.0.0",
     "electron-builder": "^26.0.12",
     "eslint": "^8.0.1",
@@ -90,8 +76,7 @@
     "puppeteer": "^24.7.2",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "wouter": "^3.7.0",
-    "zustand": "^5.0.4"
+    "wouter": "^3.7.0"
   },
   "jest": {
     "preset": "ts-jest",

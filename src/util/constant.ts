@@ -13,6 +13,7 @@ export enum IPCEvent {
   SELECT_FILE = 'select-file',
   GET_SETTINGS = 'get-settings',
   SAVE_SETTINGS = 'save-settings',
+  GET_VERSION = 'get-version',
 }
 
 
