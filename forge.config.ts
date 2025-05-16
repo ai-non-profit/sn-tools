@@ -15,7 +15,12 @@ const config: ForgeConfig = {
   },
   rebuildConfig: {},
   makers: [
-    new MakerSquirrel({}),
+    new MakerSquirrel({
+      name: 'SN-Tools',
+      certificateFile: './test/sn-tools.pfx',
+      certificatePassword: process.env.CERTIFICATE_PASSWORD,
+      setupIcon: './test/favicon.ico',
+    }),
     new MakerDMG({
       overwrite: true
     }, ['darwin']),

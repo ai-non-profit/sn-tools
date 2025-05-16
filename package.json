@@ -16,6 +16,10 @@
     "appId": "com.anp.sntools",
     "mac": {
       "target": "dmg"
+    },
+    "win": {
+      "target": "msi",
+      "icon": "./test/android-chrome-512x512.png"
     }
   },
   "keywords": [],
