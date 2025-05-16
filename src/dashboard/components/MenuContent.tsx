@@ -8,13 +8,10 @@ import Stack from '@mui/material/Stack';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
 import PeopleRoundedIcon from '@mui/icons-material/PeopleRounded';
 import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
-import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
-import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
-import HelpRoundedIcon from '@mui/icons-material/HelpRounded';
 import Settings from '@mui/icons-material/Settings';
 import { IPCEvent } from 'src/util/constant';
-import { Link, useLocation } from 'wouter';
 import InfoOutline from '@mui/icons-material/InfoOutline';
+import { Link, useLocation } from 'react-router-dom';
 
 const mainListItems = [
   { text: 'Home', icon: <HomeRoundedIcon />, href: '/' },
@@ -24,7 +21,7 @@ const mainListItems = [
 ];
 
 export default function MenuContent() {
-  const [location] = useLocation();
+  const location = useLocation();
   const [version, setVersion] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -40,7 +37,7 @@ export default function MenuContent() {
         {mainListItems.map((item, index) => (
           <Link to={item.href ?? '/'} key={index}>
             <ListItem disablePadding sx={{ display: 'block' }}>
-              <ListItemButton selected={item.href === location}>
+              <ListItemButton selected={item.href === location.pathname}>
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText>{item.text}</ListItemText>
               </ListItemButton>

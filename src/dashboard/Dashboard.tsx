@@ -8,60 +8,49 @@ import AppNavbar from './components/AppNavbar';
 import Header from './components/Header';
 import SideMenu from './components/SideMenu';
 import AppTheme from '../shared-theme/AppTheme';
-import { Route, Router } from 'wouter';
 import Crawler from './pages/Crawler';
 import SettingsPage from './pages/Setting';
-
-// const Crawler = React.lazy(() => import('./pages/Crawler'));
-// const SettingsPage = React.lazy(() => import('./pages/Setting'));
+import { HashRouter, Route, Router, Routes } from 'react-router-dom';
 
 
 export default function Dashboard(props: { disableCustomTheme?: boolean }) {
   return (
-    <AppTheme {...props} >
-      <CssBaseline enableColorScheme />
-      <Box sx={{ display: 'flex' }}>
-        <SideMenu />
-        <AppNavbar />
-        {/* Main content */}
-        <Box
-          component="main"
-          sx={(theme) => ({
-            flexGrow: 1,
-            backgroundColor: theme.vars
-              ? `rgba(${theme.vars.palette.background.defaultChannel} / 1)`
-              : alpha(theme.palette.background.default, 1),
-            overflow: 'auto',
-          })}
-        >
-          <Stack
-            spacing={2}
-            sx={{
-              alignItems: 'center',
-              mx: 3,
-              pb: 5,
-              mt: { xs: 8, md: 0 },
-            }}
+    <HashRouter>
+      <AppTheme {...props} >
+        <CssBaseline enableColorScheme />
+        <Box sx={{ display: 'flex' }}>
+          <SideMenu />
+          <AppNavbar />
+          {/* Main content */}
+          <Box
+            component="main"
+            sx={(theme) => ({
+              flexGrow: 1,
+              backgroundColor: theme.vars
+                ? `rgba(${theme.vars.palette.background.defaultChannel} / 1)`
+                : alpha(theme.palette.background.default, 1),
+              overflow: 'auto',
+            })}
           >
-            <Header />
-            <Router base="/" >
-              {/* <Route path="/" component={MainGrid} /> */}
-              <Route path="/">
-                <React.Suspense fallback={<div>Loading Home...</div>}>
-                  <Crawler />
-                </React.Suspense>
-              </Route>
-              <Route path="/settings">
-                <React.Suspense fallback={<div>Loading Setting...</div>}>
-                  <SettingsPage />
-                </React.Suspense>
-              </Route>
-              <Route path="/analytics" component={() => { return (<>asdf</>) }} />
-            </Router>
-
-          </Stack>
+            <Stack
+              spacing={2}
+              sx={{
+                alignItems: 'center',
+                mx: 3,
+                pb: 5,
+                mt: { xs: 8, md: 0 },
+              }}
+            >
+              <Header />
+              <Routes>
+                <Route path="/" element={<Crawler />} />
+                <Route path="/settings" element={<SettingsPage />} />
+              </Routes>
+            </Stack>
+          </Box>
         </Box>
-      </Box>
-    </AppTheme>
+      </AppTheme>
+    </HashRouter>
+
   );
 }
