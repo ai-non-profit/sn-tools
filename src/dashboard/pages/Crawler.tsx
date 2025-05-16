@@ -17,7 +17,6 @@ import CardActions from '@mui/material/CardActions';
 import LinearProgress from '@mui/material/LinearProgress';
 import { DataGrid } from '@mui/x-data-grid/DataGrid';
 import { useGridApiRef } from '@mui/x-data-grid';
-import { app } from 'electron';
 
 const columns: GridColDef[] = [
   { field: 'item.id', headerName: 'ID', width: 90, valueGetter: (_val, row) => row.id },

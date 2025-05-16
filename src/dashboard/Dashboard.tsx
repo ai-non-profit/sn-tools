@@ -14,8 +14,8 @@ const xThemeComponents = {
   // ...treeViewCustomizations,
 };
 
-const Crawler = React.lazy(() => import('./pages/crawler'));
-const SettingsPage = React.lazy(() => import('./pages/setting'));
+const Crawler = React.lazy(() => import('./pages/Crawler'));
+const SettingsPage = React.lazy(() => import('./pages/Setting'));
 
 
 export default function Dashboard(props: { disableCustomTheme?: boolean }) {
@@ -46,7 +46,7 @@ export default function Dashboard(props: { disableCustomTheme?: boolean }) {
             }}
           >
             <Header />
-            <Router base="/">
+            <Router base="/" >
               {/* <Route path="/" component={MainGrid} /> */}
               <Route path="/">
                 <React.Suspense fallback={<div>Loading Home...</div>}>
