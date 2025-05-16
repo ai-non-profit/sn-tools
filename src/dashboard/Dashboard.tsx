@@ -9,18 +9,16 @@ import Header from './components/Header';
 import SideMenu from './components/SideMenu';
 import AppTheme from '../shared-theme/AppTheme';
 import { Route, Router } from 'wouter';
+import Crawler from './pages/Crawler';
+import SettingsPage from './pages/Setting';
 
-const xThemeComponents = {
-  // ...treeViewCustomizations,
-};
-
-const Crawler = React.lazy(() => import('./pages/Crawler'));
-const SettingsPage = React.lazy(() => import('./pages/Setting'));
+// const Crawler = React.lazy(() => import('./pages/Crawler'));
+// const SettingsPage = React.lazy(() => import('./pages/Setting'));
 
 
 export default function Dashboard(props: { disableCustomTheme?: boolean }) {
   return (
-    <AppTheme {...props} themeComponents={xThemeComponents}>
+    <AppTheme {...props} >
       <CssBaseline enableColorScheme />
       <Box sx={{ display: 'flex' }}>
         <SideMenu />
