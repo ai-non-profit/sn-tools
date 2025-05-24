@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, net, protocol, session } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import initDownload from './api/events/download-video';
@@ -8,6 +8,9 @@ import initEdit from './api/events/edit-video';
 import initSelectFolder from './api/events/setting';
 import fixPath from 'fix-path';
 import initVersion from './api/events/version';
+import http2 from 'node:http2';
+import { PassThrough } from 'node:stream';
+import { getSettings } from './api/dal/setting';
 
 fixPath();
 
@@ -29,8 +32,48 @@ const createWindow = () => {
       contextIsolation: true,
       sandbox: true,
       nodeIntegration: false,
+      webSecurity: false,
     },
   });
+
+  // Register custom protocol
+  protocol.registerStreamProtocol('stream', (request, callback) => {
+    const videoId = request.url.split('/').pop();
+    const videoUrl = atob(videoId);
+    console.log('videoUrl:', videoUrl);
+
+    const videoStream = new PassThrough();
+    const settings = getSettings();
+    console.log(settings.tiktokCookies);
+
+    const clientRequest = net.request({
+      method: 'GET',
+      url: videoUrl,
+      session: undefined // Optional: use Electron session
+    });
+
+    // Set any cookies or headers required for auth
+    clientRequest.setHeader('Cookie', settings.tiktokCookies);
+    // clientRequest.setHeader('Authorization', 'Bearer ...');
+
+    clientRequest.on('response', (res) => {
+      res.on('data', chunk => videoStream.write(chunk));
+      res.on('end', () => videoStream.end());
+      res.on('error', err => {
+        console.error('Streaming error:', err);
+        videoStream.destroy(err);
+      });
+
+      callback({
+        statusCode: 200,
+        headers: res.headers,
+        data: videoStream,
+      });
+    });
+
+    clientRequest.end();
+  });
+
 
   // and load the index.html of the app.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
@@ -81,5 +124,3 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
-
-

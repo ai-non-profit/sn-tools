@@ -11,12 +11,12 @@ import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import Settings from '@mui/icons-material/Settings';
 import { IPCEvent } from 'src/util/constant';
 import InfoOutline from '@mui/icons-material/InfoOutline';
-import { Link, useLocation } from 'react-router-dom';
+import { href, Link, useLocation } from 'react-router-dom';
 
 const mainListItems = [
   { text: 'Home', icon: <HomeRoundedIcon />, href: '/' },
   { text: 'Setting', icon: <Settings />, href: '/settings' },
-  { text: 'Clients', icon: <PeopleRoundedIcon /> },
+  { text: 'Clients', icon: <PeopleRoundedIcon />, href: '/video' },
   { text: 'Tasks', icon: <AssignmentRoundedIcon /> },
 ];
 

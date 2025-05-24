@@ -10,7 +10,8 @@ import SideMenu from './components/SideMenu';
 import AppTheme from '../shared-theme/AppTheme';
 import Crawler from './pages/Crawler';
 import SettingsPage from './pages/Setting';
-import { HashRouter, Route, Router, Routes } from 'react-router-dom';
+import { HashRouter, Route, Routes } from 'react-router-dom';
+import TikTokStylePage from './pages/TikTokStylePage';
 
 
 export default function Dashboard(props: { disableCustomTheme?: boolean }) {
@@ -45,6 +46,9 @@ export default function Dashboard(props: { disableCustomTheme?: boolean }) {
               <Routes>
                 <Route path="/" element={<Crawler />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/video" element={<TikTokStylePage />} />
+                {/* <Route path="/video" element={<VerticalVideoSlider />} /> */}
+
               </Routes>
             </Stack>
           </Box>

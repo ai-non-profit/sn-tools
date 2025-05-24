@@ -17,6 +17,11 @@ import CardActions from '@mui/material/CardActions';
 import LinearProgress from '@mui/material/LinearProgress';
 import { DataGrid } from '@mui/x-data-grid/DataGrid';
 import { useGridApiRef } from '@mui/x-data-grid';
+import { Dialog, DialogContent } from '@mui/material';
+import TikTokStylePage from './TikTokStylePage';
+import { mockFetchData } from './mock';
+
+const mockFetch = Promise.resolve(mockFetchData);
 
 const columns: GridColDef[] = [
   { field: 'item.id', headerName: 'ID', width: 90, valueGetter: (_val, row) => row.id },
@@ -33,6 +38,12 @@ const columns: GridColDef[] = [
         style={{ width: 150, height: 200, objectFit: 'cover', borderRadius: 4, margin: 5 }}
       />
     ),
+  },
+  {
+    field: 'item.video.playAddr',
+    headerName: 'Video',
+    minWidth: 130,
+    renderCell: (params) => <Button variant='contained' size="small" >View Online</Button>
   },
   {
     flex: 0.1,
@@ -64,12 +75,7 @@ const columns: GridColDef[] = [
     valueGetter: (_val, row) => row.stats.shareCount,
     valueFormatter: formatViewCount,
   },
-  {
-    field: 'item.video.playAddr',
-    headerName: 'Video',
-    minWidth: 130,
-    renderCell: (params) => <Button variant='contained' size="small" >View Online</Button>
-  },
+
 
 ];
 
@@ -85,8 +91,16 @@ export default function Crawler() {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [progress, setProgress] = React.useState<number>(0);
   const [limit, setLimit] = React.useState<number>(0);
+  const [open, setOpen] = React.useState({ open: false, index: null });
 
   const apiRef = useGridApiRef();
+
+  columns[2].renderCell = (param) =>
+    <Button variant='contained'
+      onClick={() => setOpen({ open: true, index: param.api.getRowIndexRelativeToVisibleRows(param.id) })} size="small"
+    >
+      View Online
+    </Button>;
 
   const handleKeyUp = (event: any) => {
     if (isLoading) return;
@@ -101,8 +115,9 @@ export default function Crawler() {
       search,
       limit: limit.toString(),
     });
-    fetch(`https://dev.bbltech.org/headless-browser/api/v1/tiktok/search?${params.toString()}`)
-      .then((res) => res.json())
+    // fetch(`https://dev.bbltech.org/headless-browser/api/v1/tiktok/search?${params.toString()}`)
+    // .then((res) => res.json())
+    mockFetch
       .then(({ data, statusCode }) => {
         if (statusCode !== 200) {
           setAlert({
@@ -310,6 +325,9 @@ export default function Crawler() {
         </CardContent>
 
         <CardActions sx={{ pt: 1 }}>
+          <Button variant="contained" size="small" onClick={() => setOpen({ open: true, index: 0 })}>
+            POPUP
+          </Button>
           <Button variant="contained" size="small" onClick={handleDownloadAll} disabled={!status.download}>
             Download
           </Button>
@@ -347,6 +365,21 @@ export default function Crawler() {
         {...alert}
         onClose={closeAlert}
       />
+      <Dialog
+        fullScreen
+        open={open.open}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+        onClose={(event, reason) => {
+          if (reason !== 'backdropClick') {
+            setOpen({ open: false, index: null });
+          }
+        }}
+      >
+        <DialogContent>
+          <TikTokStylePage videos={rows} index={open.index} />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }
