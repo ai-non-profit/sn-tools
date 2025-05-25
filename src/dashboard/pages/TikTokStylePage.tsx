@@ -77,9 +77,7 @@ const TikTokStylePage = () => {
   }, [video]);
 
   const changeIndex = (newIndex: number) => {
-    // if (newIndex < 0 || newIndex >= videos.length) {
-    //   return;
-    // }
+    if (newIndex < 0 || newIndex >= useVideoStore.getState().videos.length) return;
     setIndex(newIndex);
   };
 
