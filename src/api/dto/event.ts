@@ -3,11 +3,19 @@ export type CrossEvent<T = any> = {
   data: T;
 }
 
+export type Transcript = {
+  start_time: number; // in milliseconds
+  end_time: number; // in milliseconds
+  text: string;
+}
+
 export type VideoDownloads = {
   id: string;
   url: string;
   format: string;
   duration: number; // in seconds
+  transcript?: Transcript[],
+  startOutro: number;
 }[];
 
 export type EditOptions = {

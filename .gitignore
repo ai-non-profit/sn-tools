@@ -95,3 +95,6 @@ dist/
 
 # Video
 *.mp4
+
+# IntelliJ IDEA
+.idea/

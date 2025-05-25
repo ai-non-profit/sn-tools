@@ -5,12 +5,14 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import { AlertDTO } from 'src/dashboard/stores/useAlertStore';
 
-type Props = AlertDTO & {
+type Props = {
+  title: string;
+  message: any;
   isOpen: boolean;
   onClose?: () => void,
   onConfirm?: () => void,
+  type: string;
 }
 
 export type AlertProps = Props;

@@ -21,6 +21,8 @@ import { Dialog, DialogContent } from '@mui/material';
 import TikTokStylePage from './TikTokStylePage';
 import { mockFetchData } from './mock';
 import { useVideoStore } from 'src/dashboard/stores/video';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 
 const mockFetch = Promise.resolve(mockFetchData);
 
@@ -82,6 +84,7 @@ const columns: GridColDef[] = [
 
 export default function Crawler() {
   const [alert, setAlert] = React.useState<AlertProps>();
+  const [type, setType] = React.useState<string>('search');
   const [search, setSearch] = React.useState<string>('');
   const {videos, setVideos, setIndex} = useVideoStore();
   const [status, setStatus] = React.useState({
@@ -116,12 +119,13 @@ export default function Crawler() {
   const handleSearch = () => {
     setIsLoading(true);
     const params = new URLSearchParams({
+      type,
       search,
       limit: limit.toString(),
     });
-    fetch(`https://dev.bbltech.org/headless-browser/api/v1/tiktok/search?${params.toString()}`)
-    .then((res) => res.json())
-    // mockFetch
+    // fetch(`https://dev.bbltech.org/headless-browser/api/v1/tiktok/search?${params.toString()}`)
+    // .then((res) => res.json())
+    mockFetch
       .then(({data, statusCode}) => {
         if (statusCode !== 200) {
           setAlert({
@@ -172,6 +176,8 @@ export default function Crawler() {
         url: v.video.downloadAddr ?? v.video.playAddr,
         format: v.video.format,
         duration: v.video.duration,
+        transcript: v.transcript,
+        startOutro: v.startOutro
       }));
     });
     window.electronAPI.sendToMain<VideoDownloads>(IPCEvent.DOWNLOAD_VIDEOS, videoDownloads);
@@ -299,6 +305,16 @@ export default function Crawler() {
       <Card sx={{minWidth: 275, marginBottom: 2}}>
         <CardContent>
           <Box sx={{display: 'flex', gap: 1}}>
+            <FormControl variant="outlined" sx={{ width: 200 }}>
+              <Select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                displayEmpty
+              >
+                <MenuItem value="search">Search Box</MenuItem>
+                <MenuItem value="account">Account</MenuItem>
+              </Select>
+            </FormControl>
             <FormControl variant="outlined" fullWidth>
               <OutlinedInput
                 size="medium"
