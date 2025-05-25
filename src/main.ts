@@ -40,11 +40,9 @@ const createWindow = () => {
   protocol.registerStreamProtocol('stream', (request, callback) => {
     const videoId = request.url.split('/').pop();
     const videoUrl = atob(videoId);
-    console.log('videoUrl:', videoUrl);
 
     const videoStream = new PassThrough();
     const settings = getSettings();
-    console.log(settings.tiktokCookies);
 
     const clientRequest = net.request({
       method: 'GET',
