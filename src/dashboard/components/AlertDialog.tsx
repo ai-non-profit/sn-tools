@@ -5,7 +5,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import { AlertDTO } from '../store/useAlertStore';
+import { AlertDTO } from 'src/dashboard/stores/useAlertStore';
 
 type Props = AlertDTO & {
   isOpen: boolean;

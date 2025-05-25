@@ -14,6 +14,7 @@ export enum IPCEvent {
   GET_SETTINGS = 'get-settings',
   SAVE_SETTINGS = 'save-settings',
   GET_VERSION = 'get-version',
+  GET_TRANSCRIPT = 'get-transcript',
 }
 
 

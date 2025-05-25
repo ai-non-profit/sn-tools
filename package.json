@@ -77,7 +77,8 @@
     "got": "^14.4.7",
     "open": "^10.1.2",
     "p-limit": "^6.2.0",
-    "react-router-dom": "^7.6.0"
+    "react-router-dom": "^7.6.0",
+    "zustand": "^5.0.5"
   },
   "jest": {
     "preset": "ts-jest",
