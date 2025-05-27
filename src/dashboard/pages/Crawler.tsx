@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { IPCEvent } from 'src/util/constant';
 import { formatViewCount } from 'src/util/common';
-import { Settings, UploadVideoOptions, VideoDownloads } from 'src/api/dto/event';
+import { Settings, TikTokVideo, UploadVideoOptions } from 'src/api/dto/event';
 import AlertDialog, { AlertProps } from 'src/dashboard/components/AlertDialog';
 import type { GridColDef } from '@mui/x-data-grid/models/colDef/gridColDef';
 import Button from '@mui/material/Button';
@@ -123,9 +123,9 @@ export default function Crawler() {
       search,
       limit: limit.toString(),
     });
-    // fetch(`https://dev.bbltech.org/headless-browser/api/v1/tiktok/search?${params.toString()}`)
-    // .then((res) => res.json())
-    mockFetch
+    fetch(`https://dev.bbltech.org/headless-browser/api/v1/tiktok/search?${params.toString()}`)
+    .then((res) => res.json())
+    // mockFetch
       .then(({data, statusCode}) => {
         if (statusCode !== 200) {
           setAlert({
@@ -168,19 +168,12 @@ export default function Crawler() {
       download: false
     }));
     setProgress(50);
-    const videoDownloads: VideoDownloads = [];
+    const videoDownloads: TikTokVideo[] = [];
     videos.forEach((v: any) => {
       if (!selectedRows.has(v.id)) return;
-      videoDownloads.push(({
-        id: v.id,
-        url: v.video.downloadAddr ?? v.video.playAddr,
-        format: v.video.format,
-        duration: v.video.duration,
-        transcript: v.transcript,
-        startOutro: v.startOutro
-      }));
+      videoDownloads.push(v);
     });
-    window.electronAPI.sendToMain<VideoDownloads>(IPCEvent.DOWNLOAD_VIDEOS, videoDownloads);
+    window.electronAPI.sendToMain<TikTokVideo[]>(IPCEvent.DOWNLOAD_VIDEOS, videoDownloads);
   };
 
   const handleAppendOutro = () => {
@@ -231,10 +224,12 @@ export default function Crawler() {
           return;
         }
         if (data.percent === 100) {
+          console.log(data);
           setProgress(100);
           setTimeout(() => {
             setProgress(0);
           }, 2000);
+          setVideos(data.data);
           setAlert({
             isOpen: true,
             title: 'Success',
