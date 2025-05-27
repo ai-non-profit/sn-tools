@@ -15,6 +15,7 @@ const limit = pLimit(3);
 const initialize = (mainWindow: BrowserWindow) => {
   let downloadDir = '';
   let outroDir = '';
+  let rawDir = '';
 
   ipcMain.on(IPCEvent.DOWNLOAD_VIDEOS, async (_, data: TikTokVideo[]) => {
     console.log('start download videos:', data.length);
@@ -24,9 +25,11 @@ const initialize = (mainWindow: BrowserWindow) => {
 
     downloadDir = settings.downloadDir + '/original';
     outroDir = settings.downloadDir + '/outro';
+    rawDir = settings.downloadDir + '/raw';
 
     if (!fs.existsSync(downloadDir)) fs.mkdirSync(downloadDir);
     if (!fs.existsSync(outroDir)) fs.mkdirSync(outroDir);
+    if (!fs.existsSync(rawDir)) fs.mkdirSync(rawDir);
 
     const tasks = data.map((d) => {
       // eslint-disable-next-line prefer-const
@@ -51,8 +54,10 @@ const initialize = (mainWindow: BrowserWindow) => {
                 ? lastTranscript.end_time / 1000
                 : lastTranscript.start_time / 1000;
             }
-            const videoPath = await cutOutro(pth, outroDir, startOutro || duration - 5);
-            console.log('Outro cutted to:', videoPath);
+            startOutro = startOutro || duration - 5; // Default to 5 seconds before the end if not specified
+            const outroPath = await cutVideo(pth, outroDir, startOutro);
+            const rawPath = await cutVideo(pth, rawDir, 0, duration - startOutro);
+            console.log('Outro cutted to:', outroPath);
             return {
               ...d,
               id,
@@ -63,7 +68,8 @@ const initialize = (mainWindow: BrowserWindow) => {
               startOutro,
               localPath: {
                 original: dest,
-                outro: path.join(outroDir, filename)
+                outro: outroPath,
+                raw: rawPath,
               }
             };
           })
@@ -125,16 +131,33 @@ const downloadVideo = (path: string, url: string, cookies: string): Promise<stri
 
 };
 
-const cutOutro = (videoPath: string, outroDir: string, startOutro: number): Promise<string> => {
+/**
+ * Cuts a video from startSecond to endSecond and saves it to outroDir.
+ * @param videoPath Path to the input video file.
+ * @param outDir Directory to save the cut video.
+ * @param startSecond Start time in seconds.
+ * @param endSecond End time in seconds.
+ * @returns Promise<string> - Path to the output video.
+ */
+const cutVideo = (
+  videoPath: string,
+  outDir: string,
+  startSecond: number,
+  endSecond?: number
+): Promise<string> => {
   return new Promise((resolve, reject) => {
-    const command = `${ffmpegPath} -y -ss ${startOutro} -i "${videoPath}" -movflags +faststart -t 5 -c copy "${outroDir}/${path.basename(videoPath)}"`;
+    let durationArg = '';
+    if (typeof endSecond === 'number' && endSecond > startSecond) {
+      durationArg = `-t ${endSecond - startSecond}`;
+    }
+    const outputPath = `${outDir}/${path.basename(videoPath)}`;
+    const command = `${ffmpegPath} -y -ss ${startSecond} -i "${videoPath}" -movflags +faststart ${durationArg} -c copy "${outputPath}"`;
 
     exec(command, (err) => {
       if (err) reject(err);
-      else resolve(videoPath);
+      else resolve(outputPath);
     });
   });
-
 };
 
 const initDownload = initialize;
