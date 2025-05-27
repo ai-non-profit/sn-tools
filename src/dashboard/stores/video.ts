@@ -7,17 +7,31 @@ interface State {
   setIndex: (index: number) => void;
   setVideos: (videos: Record<string, any>[]) => void;
   changeVideo: (index: number, video: Partial<State['videos'][0]>) => void;
+  setEditVideo: (editPaths: string[]) => void;
 }
 
 export const useVideoStore = create<State>(set => ({
   videos: [],
   index: 0,
-  setIndex: (index: number) => set({index}),
-  setVideos: (videos: TikTokVideo[]) => set({videos}),
+  setIndex: (index: number) => set({ index }),
+  setVideos: (videos: TikTokVideo[]) => {
+    console.log('Setting videos:', videos);
+    set({ videos });
+  },
+  setEditVideo: (editPaths: string[]) => set(state => {
+    console.log('Setting edit paths:', state.videos, editPaths);
+    const videos = state.videos.map((video, index) => {
+      if (editPaths[index]) {
+        return { ...video, localPath: { ...video.localPath, edited: editPaths[index] } };
+      }
+      return video;
+    });
+    return { videos };
+  }),
   changeVideo: (index: number, video: Partial<TikTokVideo>) => set(state => {
     for (const key in video) {
       state.videos[index][key] = video[key];
     }
-    return {videos: [...state.videos]};
+    return { videos: [...state.videos] };
   }),
 }));

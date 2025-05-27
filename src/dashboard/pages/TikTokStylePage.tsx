@@ -65,7 +65,7 @@ const TikTokStylePage = () => {
   const index = useVideoStore(state => state.index);
   const setIndex = useVideoStore(state => state.setIndex);
   const changeVideo = useVideoStore(state => state.changeVideo);
-  const [url, setUrl] = React.useState<string>(video.localPath.original ?? video.video.playAddr ?? video.video.downloadAddr);
+  const [url, setUrl] = React.useState<string>(video.localPath?.original ?? video.video.playAddr ?? video.video.downloadAddr);
   const [isOutro, setIsOutro] = React.useState<boolean>(false);
 
   React.useEffect(() => {
@@ -82,6 +82,8 @@ const TikTokStylePage = () => {
   const changeIndex = (newIndex: number) => {
     if (newIndex < 0 || newIndex >= useVideoStore.getState().videos.length) return;
     setIndex(newIndex);
+    const video = useVideoStore.getState().videos[newIndex];
+    setUrl(video.localPath?.original ?? video.video.playAddr ?? video.video.downloadAddr);
   };
 
   const setOutroTime = () => {
@@ -101,6 +103,13 @@ const TikTokStylePage = () => {
     setUrl(video.localPath.original ?? video.video.playAddr ?? video.video.downloadAddr);
     setIsOutro(false);
   };
+
+  const viewEdited = () => {
+    setUrl(video.localPath.edited);
+    setIsOutro(false);
+  };
+
+  console.log(video);
 
   return (
     <Box sx={{ display: 'flex', height: '100%', backgroundColor: '#000' }}>
@@ -154,7 +163,7 @@ const TikTokStylePage = () => {
           <Button variant='contained' onClick={setOutroTime} >Set Outro Time</Button>
         </Box>
 
-        {video.localPath.outro && !isOutro && (
+        {video.localPath?.outro && !isOutro && (
           <Box sx={{ display: 'flex', gap: 1, marginBottom: 2, '& button': { fontSize: 15 } }}>
             <Button variant='contained' onClick={viewOutro} >View Outro</Button>
           </Box>
@@ -162,6 +171,11 @@ const TikTokStylePage = () => {
         {isOutro && (
           <Box sx={{ display: 'flex', gap: 1, marginBottom: 2, '& button': { fontSize: 15 } }}>
             <Button variant='contained' onClick={viewOriginal} >View Origin</Button>
+          </Box>
+        )}
+        {video.localPath?.edited && (
+          <Box sx={{ display: 'flex', gap: 1, marginBottom: 2, '& button': { fontSize: 15 } }}>
+            <Button variant='contained' onClick={viewEdited} >View Edit</Button>
           </Box>
         )}
 

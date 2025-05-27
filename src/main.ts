@@ -38,11 +38,13 @@ const createWindow = () => {
 
   // Register custom protocol
   protocol.registerStreamProtocol('stream', (request, callback) => {
-    const videoId = request.url.split('/').pop();
+    const videoId = request.url.replace('stream://video/', '');
     const videoUrl = atob(videoId);
 
     const videoStream = new PassThrough();
     const settings = getSettings();
+
+    console.log('Streaming video from URL:', videoUrl);
 
     const clientRequest = net.request({
       method: 'GET',

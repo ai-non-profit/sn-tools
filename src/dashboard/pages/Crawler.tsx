@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { IPCEvent } from 'src/util/constant';
 import { formatViewCount } from 'src/util/common';
-import { Settings, TikTokVideo, UploadVideoOptions } from 'src/api/dto/event';
+import { EditOptions, Settings, TikTokVideo, UploadVideoOptions } from 'src/api/dto/event';
 import AlertDialog, { AlertProps } from 'src/dashboard/components/AlertDialog';
 import type { GridColDef } from '@mui/x-data-grid/models/colDef/gridColDef';
 import Button from '@mui/material/Button';
@@ -27,7 +27,7 @@ import MenuItem from '@mui/material/MenuItem';
 const mockFetch = Promise.resolve(mockFetchData);
 
 const columns: GridColDef[] = [
-  {field: 'item.id', headerName: 'ID', width: 90, valueGetter: (_val, row) => row.id},
+  { field: 'item.id', headerName: 'ID', width: 90, valueGetter: (_val, row) => row.id },
   {
     flex: 0.025,
     field: 'item.video.cover',
@@ -38,7 +38,7 @@ const columns: GridColDef[] = [
         src={params.row.video.cover}
         alt="item"
         loading="lazy"
-        style={{width: 150, height: 200, objectFit: 'cover', borderRadius: 4, margin: 5}}
+        style={{ width: 150, height: 200, objectFit: 'cover', borderRadius: 4, margin: 5 }}
       />
     ),
   },
@@ -86,7 +86,7 @@ export default function Crawler() {
   const [alert, setAlert] = React.useState<AlertProps>();
   const [type, setType] = React.useState<string>('search');
   const [search, setSearch] = React.useState<string>('');
-  const {videos, setVideos, setIndex} = useVideoStore();
+  const { videos, setVideos, setIndex, setEditVideo } = useVideoStore();
   const [status, setStatus] = React.useState({
     download: false,
     append: false,
@@ -101,10 +101,10 @@ export default function Crawler() {
 
   columns[2].renderCell = (param) =>
     <Button variant="contained" size="small"
-            onClick={() => {
-              setIndex(param.api.getRowIndexRelativeToVisibleRows(param.id));
-              setOpen(true);
-            }}
+      onClick={() => {
+        setIndex(param.api.getRowIndexRelativeToVisibleRows(param.id));
+        setOpen(true);
+      }}
     >
       View Online
     </Button>;
@@ -124,9 +124,9 @@ export default function Crawler() {
       limit: limit.toString(),
     });
     fetch(`https://dev.bbltech.org/headless-browser/api/v1/tiktok/search?${params.toString()}`)
-    .then((res) => res.json())
-    // mockFetch
-      .then(({data, statusCode}) => {
+      .then((res) => res.json())
+      // mockFetch
+      .then(({ data, statusCode }) => {
         if (statusCode !== 200) {
           setAlert({
             isOpen: true,
@@ -182,7 +182,7 @@ export default function Crawler() {
       ...status,
       append: true
     }));
-    window.electronAPI.sendToMain(IPCEvent.EDIT_VIDEO, {});
+    window.electronAPI.sendToMain<EditOptions>(IPCEvent.EDIT_VIDEO, { videos });
   };
 
   const uploadYoutube = () => {
@@ -204,15 +204,15 @@ export default function Crawler() {
   };
 
   const closeAlert = () => {
-    setAlert((alert: any) => ({...alert, isOpen: false}));
+    setAlert((alert: any) => ({ ...alert, isOpen: false }));
   };
 
   React.useEffect(() => {
-    window.electronAPI?.onMessageFromMain(({event, data}) => {
+    window.electronAPI?.onMessageFromMain(({ event, data }) => {
+      console.log('Event received:', event, data);
       if (event === IPCEvent.DOWNLOAD_PROGRESS) {
-        console.log(data);
         setIsLoading(false);
-        setStatus(status => ({...status, download: true, append: true, upload: false}));
+        setStatus(status => ({ ...status, download: true, append: true, upload: false }));
         if (data.error) {
           setAlert({
             isOpen: true,
@@ -239,17 +239,18 @@ export default function Crawler() {
           return;
         }
       }
-      if (event === IPCEvent.EDIT_VIDEO_PROGRESS) {
+      else if (event === IPCEvent.EDIT_VIDEO_PROGRESS) {
         setIsLoading(false);
-        setStatus(status => ({...status, append: false, upload: true}));
+        setStatus(status => ({ ...status, append: false, upload: true }));
         if (data.percent === 100) {
-          setVideos(videos.filter((v: any) => data.ids[v.id] === 1));
+          console.log(data.data);
           setAlert({
             isOpen: true,
             title: 'Success',
             message: 'Append outro video completed',
             type: 'success'
           });
+          setEditVideo(data.data);
           return;
         }
         if (data.error) {
@@ -262,8 +263,8 @@ export default function Crawler() {
           return;
         }
       }
-      if (event === IPCEvent.UPLOAD_VIDEO_PROGRESS) {
-        setStatus(status => ({...status, upload: true}));
+      else if (event === IPCEvent.UPLOAD_VIDEO_PROGRESS) {
+        setStatus(status => ({ ...status, upload: true }));
         if (data.percent === 100) {
           setAlert({
             isOpen: true,
@@ -292,14 +293,14 @@ export default function Crawler() {
 
 
   return (
-    <Box sx={{width: '100%', maxWidth: {sm: '100%', md: '1700px'}}}>
+    <Box sx={{ width: '100%', maxWidth: { sm: '100%', md: '1700px' } }}>
       {/* cards */}
-      <Typography component="h2" variant="h6" sx={{mb: 2}}>
+      <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
         Crawler
       </Typography>
-      <Card sx={{minWidth: 275, marginBottom: 2}}>
+      <Card sx={{ minWidth: 275, marginBottom: 2 }}>
         <CardContent>
-          <Box sx={{display: 'flex', gap: 1}}>
+          <Box sx={{ display: 'flex', gap: 1 }}>
             <FormControl variant="outlined" sx={{ width: 200 }}>
               <Select
                 value={type}
@@ -319,8 +320,8 @@ export default function Crawler() {
                 onKeyUp={handleKeyUp}
                 onChange={(e) => setSearch(e.target.value)}
                 startAdornment={
-                  <InputAdornment position="start" sx={{color: 'text.primary'}}>
-                    <SearchRoundedIcon fontSize="small"/>
+                  <InputAdornment position="start" sx={{ color: 'text.primary' }}>
+                    <SearchRoundedIcon fontSize="small" />
                   </InputAdornment>
                 }
                 inputProps={{
@@ -332,7 +333,7 @@ export default function Crawler() {
               variant="contained"
               size="medium"
               onClick={handleSearch}
-              sx={{whiteSpace: 'nowrap'}}
+              sx={{ whiteSpace: 'nowrap' }}
               disabled={isLoading}
             >
               Search
@@ -340,10 +341,7 @@ export default function Crawler() {
           </Box>
         </CardContent>
 
-        <CardActions sx={{pt: 1}}>
-          <Button variant="contained" size="small" onClick={() => setOpen(true)}>
-            POPUP
-          </Button>
+        <CardActions sx={{ pt: 1 }}>
           <Button variant="contained" size="small" onClick={handleDownloadAll} disabled={!status.download}>
             Download
           </Button>
@@ -355,8 +353,8 @@ export default function Crawler() {
           </Button>
         </CardActions>
       </Card>
-      {progress > 0 && <LinearProgress variant="determinate" value={progress}/>}
-      <Box sx={{flexGrow: 1, height: '100%', width: '100%'}}>
+      {progress > 0 && <LinearProgress variant="determinate" value={progress} />}
+      <Box sx={{ flexGrow: 1, height: '100%', width: '100%' }}>
         <DataGrid
           apiRef={apiRef}
           rows={videos}
@@ -372,7 +370,7 @@ export default function Crawler() {
           loading={isLoading}
           initialState={{
             pagination: {
-              paginationModel: {pageSize: 20, page: 0},
+              paginationModel: { pageSize: 20, page: 0 },
             },
           }}
         />

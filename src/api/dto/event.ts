@@ -11,6 +11,7 @@ export type Transcript = {
 
 export type EditOptions = {
   videoPath?: string;
+  videos: TikTokVideo[];
 };
 
 export type UploadVideoOptions = {
@@ -49,8 +50,9 @@ export interface TikTokVideo {
   startOutro: number;
   localPath?: {
     original: string;
-    outro?: string; // path to the video with outro cutted
-    edited?: string; // path to the video with outro cutted and edited
+    raw?: string;
+    outro?: string;
+    edited?: string;
   }
   [key: string]: any; // for future use, like editing options
 }
