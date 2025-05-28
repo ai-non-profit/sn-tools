@@ -128,16 +128,21 @@ export default function SettingsPage() {
             />
           </Box>
 
-          {/* <TextField
-            label="Access Token"
-            value={accessToken}
-            onChange={(e) => setAccessToken(e.target.value)}
-            fullWidth
-            margin="normal"
-            type="password"
-          /> */}
+
+          <Box sx={{ display: 'flex', gap: 1, height: 'auto', '& div': { height: 'auto'} }}>
+            <TextField
+              label="TikTok Cookie"
+              value={settings.tiktokCookies || ''}
+              fullWidth
+              onChange={(e) => handleChange('tiktokCookies', e.target.value)}
+              multiline
+              rows={4}
+              placeholder="Paste your TikTok cookies here"
+            />
+          </Box>
+          
         </CardContent>
-        <CardActions sx={{ justifyContent: 'flex-end' }}>
+        <CardActions sx={{ justifyContent: 'flex-end', pt: 2 }}>
           <Button loading={loading} variant="contained" onClick={handleSave}>
             Save Settings
           </Button>
