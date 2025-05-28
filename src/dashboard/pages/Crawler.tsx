@@ -116,39 +116,65 @@ export default function Crawler() {
     }
   };
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     setIsLoading(true);
     const params = new URLSearchParams({
       type,
       search,
       limit: limit.toString(),
     });
-    fetch(`https://dev.bbltech.org/headless-browser/api/v1/tiktok/search?${params.toString()}`)
-      .then((res) => res.json())
-      // mockFetch
-      .then(({ data, statusCode }) => {
-        if (statusCode !== 200) {
-          setAlert({
-            isOpen: true,
-            title: 'Error',
-            message: data.message,
-            type: 'error'
-          });
-          setIsLoading(false);
-          return;
-        }
-        setVideos(data.videos);
-        setStatus((status) => ({
-          ...status,
-          download: !!data.videos.length
-        }));
-        setIsLoading(false);
-        window.electronAPI.invokeMain(IPCEvent.SAVE_SETTINGS, {
-          tiktokCookies: data.cookie,
-        }).then(() => {
-          console.log('Save cookies success');
-        });
-      });
+    const url = 'https://www.tiktok.com/api/search/general/full/?WebIdLastTime=1745635676&aid=1988&app_language=en&app_name=tiktok_web&browser_language=en-US&browser_name=Mozilla&browser_online=true&browser_platform=Linux x86_64&browser_version=5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36&channel=tiktok_web&cookie_enabled=true&data_collection_enabled=true&device_id=7497448105643329031&device_platform=web_pc&device_type=web_h264&focus_state=true&from_page=search&history_len=3&is_fullscreen=false&is_page_visible=true&keyword=tiktok trend&odinId=7497447860569588754&offset=0&os=linux&region=VN&screen_height=1050&screen_width=1680&search_source=normal_search&tz_name=Asia/Saigon&user_is_login=false&web_search_code={"tiktok":{"client_params_x":{"search_engine":{"ies_mt_user_live_video_card_use_libra":1,"mt_search_general_user_live_card":1}},"search_server":{}}}&webcast_language=en&priority_region=&referer=';
+    const options = {
+      method: 'GET',
+      headers: {
+        accept: '*/*',
+        'accept-language': 'en-US,en;q=0.8',
+        priority: 'u=1, i',
+        'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Linux"',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'same-origin',
+        'sec-gpc': '1',
+        'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+        Cookie: 'tt_chain_token=pW4m8n/60ABC89xH6mXVAw; passport_csrf_token=79fbe169cdefe713b9cc426e1f0778df; passport_csrf_token_default=79fbe169cdefe713b9cc426e1f0778df; tiktok_webapp_theme_source=auto; tiktok_webapp_theme=dark; delay_guest_mode_vid=5; odin_tt=8d83c869868ffd0e9375d3c8f701a6ecda2ecf8409d009ac777bdb9414802971f2b1c15c4fae37e23f6f3f6987ee8ee846b8bb13ce85dfe542dbe8c0c19a5ace6597b326509c150b0bf080d36ecfa43a; tt_csrf_token=0wuMeJAa-c6tQMYEKmN288hZjFpQK3uiVync; ttwid=1%7CtSkzoL2V3Doh11N3ayey5N2gcNOS89ybKigQccQUwxA%7C1748407169%7C832a192a40585a5377007db06d2bbc3564715257802b5dcc934e03059bd56a1f; perf_feed_cache={%22expireTimestamp%22:1748577600000%2C%22itemIds%22:[%227499806651466255624%22%2C%227495249081988631815%22%2C%227483283728379284754%22]}; msToken=zY_Jt_Sl6TNRLJ_I7EXdimJnSJgyHaYEdcxCZnN9iNsAMH4KdmPbZms9Q6U2GcUTdBotpHH1CPv4HvTlnwRWl1fZBMMDxRCN1N0ti9YUUpsPTXsp6jpyygcqTH-t1uYWBHZoRso_QMMSViE'
+      }
+    };
+
+    try {
+      const response = await fetch(url, options);
+      const data = await response.json();
+      console.log(data);
+    } catch (error) {
+      console.error(error);
+    }
+    // fetch(`https://dev.bbltech.org/headless-browser/api/v1/tiktok/search?${params.toString()}`)
+    //   .then((res) => res.json())
+    //   // mockFetch
+    //   .then(({ data, statusCode }) => {
+    //     if (statusCode !== 200) {
+    //       setAlert({
+    //         isOpen: true,
+    //         title: 'Error',
+    //         message: data.message,
+    //         type: 'error'
+    //       });
+    //       setIsLoading(false);
+    //       return;
+    //     }
+    //     setVideos(data.videos);
+    //     setStatus((status) => ({
+    //       ...status,
+    //       download: !!data.videos.length
+    //     }));
+    //     setIsLoading(false);
+    //     window.electronAPI.invokeMain(IPCEvent.SAVE_SETTINGS, {
+    //       tiktokCookies: data.cookie,
+    //     }).then(() => {
+    //       console.log('Save cookies success');
+    //     });
+    //   });
   };
 
   const handleDownloadAll = () => {
