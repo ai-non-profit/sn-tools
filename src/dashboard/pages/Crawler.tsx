@@ -23,6 +23,7 @@ import { mockFetchData } from './mock';
 import { useVideoStore } from 'src/dashboard/stores/video';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import { Cookie } from '@mui/icons-material';
 
 const mockFetch = Promise.resolve(mockFetchData);
 
@@ -119,60 +120,7 @@ export default function Crawler() {
 
   const handleSearch = async () => {
     setIsLoading(true);
-    const params = new URLSearchParams({
-      WebIdLastTime: Date.now().toString(),
-      aid: '1988',
-      app_language: 'en',
-      app_name: 'tiktok_web',
-      browser_language: 'en-US',
-      browser_name: 'Mozilla',
-      browser_online: 'true',
-      browser_platform: 'Linux x86_64',
-      browser_version: '5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
-      channel: 'tiktok_web',
-      cookie_enabled: 'true',
-      data_collection_enabled: 'true',
-      device_id: '7497448105643329031',
-      device_platform: 'web_pc',
-      device_type: 'web_h264',
-      focus_state: 'true',
-      from_page: 'search',
-      history_len: '3',
-      is_fullscreen: 'false',
-      is_page_visible: 'true',
-      keyword: search,
-      odinId: '7497447860569588754',
-      os: 'linux',
-      region: 'VN',
-      screen_height: '1050',
-      screen_width: '1680',
-      search_source: 'normal_search',
-      tz_name: 'Asia/Saigon',
-      user_is_login: 'false',
-      web_search_code: '{"tiktok":{"client_params_x":{"search_engine":{"ies_mt_user_live_video_card_use_libra":1,"mt_search_general_user_live_card":1}},"search_server":{}}}',
-      webcast_language: 'en',
-    });
-    const url = 'https://www.tiktok.com/api/search/general/full/?' + params.toString();
-    const options = {
-      method: 'GET',
-      headers: {
-        accept: '*/*',
-        'accept-language': 'en-US,en;q=0.8',
-        priority: 'u=1, i',
-        'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Linux"',
-        'sec-fetch-dest': 'empty',
-        'sec-fetch-mode': 'cors',
-        'sec-fetch-site': 'same-origin',
-        'sec-gpc': '1',
-        'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
-        Cookie: cookies
-      }
-    };
-
-    fetch(url, options)
-      .then((response) => response.json())
+      window.electronAPI.invokeMain<any, any>(IPCEvent.CRAWLER_VIDEO, { search })
       .then(({ data, status_code }) => {
         if (status_code !== 0) {
           setAlert({
