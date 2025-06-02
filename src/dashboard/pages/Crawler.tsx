@@ -117,8 +117,8 @@ export default function Crawler() {
   const handleSearch = async () => {
     setIsLoading(true);
     window.electronAPI.invokeMain<any, any>(IPCEvent.CRAWLER_VIDEO, { search })
-      .then(({ data, status_code }) => {
-        if (status_code !== 0) {
+      .then(({ data, success }) => {
+        if (success === false) {
           setAlert({
             isOpen: true,
             title: 'Error',
@@ -128,11 +128,10 @@ export default function Crawler() {
           setIsLoading(false);
           return;
         }
-        const videos = data.filter((v: any) => v.type === 1).map((v: any) => v.item);
-        setVideos(videos);
+        setVideos(data);
         setStatus((status) => ({
           ...status,
-          download: !!videos.length
+          download: !!data.length
         }));
         setIsLoading(false);
       });
