@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { IPCEvent } from 'src/util/constant';
 import { formatViewCount } from 'src/util/common';
-import { EditOptions, Settings, TikTokVideo, UploadVideoOptions } from 'src/api/dto/event';
+import { EditOptions, TikTokVideo, UploadVideoOptions } from 'src/api/dto/event';
 import AlertDialog, { AlertProps } from 'src/dashboard/components/AlertDialog';
 import type { GridColDef } from '@mui/x-data-grid/models/colDef/gridColDef';
 import Button from '@mui/material/Button';
@@ -17,15 +17,13 @@ import CardActions from '@mui/material/CardActions';
 import LinearProgress from '@mui/material/LinearProgress';
 import { DataGrid } from '@mui/x-data-grid/DataGrid';
 import { useGridApiRef } from '@mui/x-data-grid';
-import { Dialog, DialogContent } from '@mui/material';
+import { Dialog, DialogContent, IconButton } from '@mui/material';
 import TikTokStylePage from './TikTokStylePage';
-import { mockFetchData } from './mock';
 import { useVideoStore } from 'src/dashboard/stores/video';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import { Cookie } from '@mui/icons-material';
+import { CloseOutlined } from '@mui/icons-material';
 
-const mockFetch = Promise.resolve(mockFetchData);
 
 const columns: GridColDef[] = [
   { field: 'item.id', headerName: 'ID', width: 90, valueGetter: (_val, row) => row.id },
@@ -47,7 +45,7 @@ const columns: GridColDef[] = [
     field: 'item.video.playAddr',
     headerName: 'Video',
     minWidth: 130,
-    renderCell: (params) => <Button variant="contained" size="small">View Online</Button>
+    renderCell: () => <Button variant="contained" size="small">View Online</Button>
   },
   {
     flex: 0.1,
@@ -95,9 +93,7 @@ export default function Crawler() {
   });
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [progress, setProgress] = React.useState<number>(0);
-  // const [limit, setLimit] = React.useState<number>(0);
   const [open, setOpen] = React.useState(false);
-  const [cookies, setCookies] = React.useState<string>('');
 
   const apiRef = useGridApiRef();
 
@@ -120,7 +116,7 @@ export default function Crawler() {
 
   const handleSearch = async () => {
     setIsLoading(true);
-      window.electronAPI.invokeMain<any, any>(IPCEvent.CRAWLER_VIDEO, { search })
+    window.electronAPI.invokeMain<any, any>(IPCEvent.CRAWLER_VIDEO, { search })
       .then(({ data, status_code }) => {
         if (status_code !== 0) {
           setAlert({
@@ -139,11 +135,6 @@ export default function Crawler() {
           download: !!videos.length
         }));
         setIsLoading(false);
-        // window.electronAPI.invokeMain(IPCEvent.SAVE_SETTINGS, {
-        //   tiktokCookies: data.cookie,
-        // }).then(() => {
-        //   console.log('Save cookies success');
-        // });
       });
   };
 
@@ -281,11 +272,6 @@ export default function Crawler() {
         }
       }
     });
-    (async () => {
-      const settings = await window.electronAPI.invokeMain<null, Settings>(IPCEvent.GET_SETTINGS);
-      // setLimit(settings.maxDownloads);
-      setCookies(settings.tiktokCookies);
-    })();
   }, []);
 
 
@@ -387,7 +373,14 @@ export default function Crawler() {
           }
         }}
       >
-        <DialogContent>
+        <DialogContent sx={{ padding: 0, backgroundColor: '#2C2F33', color: '#FFFFFF' }}>
+          <IconButton
+            sx={{ position: 'absolute', top: 10, left: 0, color: '#FFFFFF', zIndex: 100 }}
+            onClick={() => setOpen(false)}
+          >
+            <CloseOutlined/>
+          </IconButton>
+          
           <TikTokStylePage />
         </DialogContent>
       </Dialog>

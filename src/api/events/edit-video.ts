@@ -89,8 +89,8 @@ export async function appendOutroToVideo(videoPath: string, outroPath: string, o
 
   return new Promise((resolve, reject) => {
     exec(cmd, (err, stdout, stderr) => {
+      unlinkSync(tempListPath);
       if (err) {
-        unlinkSync(tempListPath);
         console.error(stderr);
         return reject(err);
       }

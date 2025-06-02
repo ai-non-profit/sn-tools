@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Avatar, Box, IconButton, Typography } from '@mui/material';
+import { Avatar, Box, IconButton, TextField, Typography } from '@mui/material';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ShareIcon from '@mui/icons-material/Share';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
@@ -86,6 +86,12 @@ const TikTokStylePage = () => {
     setUrl(video.localPath?.original ?? video.video.playAddr ?? video.video.downloadAddr);
   };
 
+  const onOutroTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(event.target.value);
+    if (isNaN(value) || value < 0) return;
+    changeVideo(index, { startOutro: value });
+  }
+
   const setOutroTime = () => {
     if (!videoRef.current) return;
     const currentTime = videoRef.current.currentTime;
@@ -138,7 +144,7 @@ const TikTokStylePage = () => {
       </Box>
 
       {/* Right side: Metadata */}
-      <Box sx={{ width: 300, color: 'white', padding: 2 }}>
+      <Box sx={{ width: 400, color: 'white', padding: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
           <Avatar alt="emoji_battery_app68"
             src="https://p9-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/8f00348ad4c5aa957d99589893600e62~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=2215cd8f&x-expires=1748232000&x-signature=snpeDM72y%2FaOvxVLPoCoeEbgUm8%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=b59d6b55&idc=my2" />
@@ -159,8 +165,18 @@ const TikTokStylePage = () => {
         </Box>
 
         <Box sx={{ display: 'flex', gap: 1, marginBottom: 2, '& button': { fontSize: 15 } }}>
-          <Typography variant="subtitle1">{video.startOutro ?? '0'}</Typography>
-          <Button variant='contained' onClick={setOutroTime} >Set Outro Time</Button>
+          <TextField
+            type='number'
+            label="OUTRO Time (seconds)"
+            value={video.startOutro || 0}
+            size='small'
+            margin="normal"
+            onChange={onOutroTimeChange}
+            slotProps={{
+              inputLabel: { shrink: true },
+            }}
+          />
+          <Button variant='contained' onClick={setOutroTime} size='small' >Set Current Frame</Button>
         </Box>
 
         {video.localPath?.outro && !isOutro && (
