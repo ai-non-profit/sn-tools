@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import CardActions from '@mui/material/CardActions';
+import { FormControl, MenuItem, Select } from '@mui/material';
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -128,8 +129,32 @@ export default function SettingsPage() {
             />
           </Box>
 
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <TextField
+              type='number'
+              label="Offset Date Ago"
+              value={settings.offsetDateAgo || 0}
+              onChange={(e) => handleChange('offsetDateAgo', +e.target.value)}
+              size='small'
+              margin="normal"
+            />
 
-          <Box sx={{ display: 'flex', gap: 1, height: 'auto', '& div': { height: 'auto'} }}>
+            <Select
+              value={settings.offsetDateType || 'months'}
+              onChange={(e: any) => handleChange('offsetDateType', e.target.value)}
+              displayEmpty
+              size='small'
+              sx={{ minWidth: 120, marginTop: '16px' }}
+            >
+              <MenuItem value="years">Year</MenuItem>
+              <MenuItem value="months">Month</MenuItem>
+              <MenuItem value="weeks">Week</MenuItem>
+              <MenuItem value="days">Day</MenuItem>
+            </Select>
+          </Box>
+
+
+          <Box sx={{ display: 'flex', gap: 1, height: 'auto', '& div': { height: 'auto' } }}>
             <TextField
               label="TikTok Cookie"
               value={settings.tiktokCookies || ''}
@@ -140,7 +165,7 @@ export default function SettingsPage() {
               placeholder="Paste your TikTok cookies here"
             />
           </Box>
-          
+
         </CardContent>
         <CardActions sx={{ justifyContent: 'flex-end', pt: 2 }}>
           <Button loading={loading} variant="contained" onClick={handleSave}>

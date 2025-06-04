@@ -37,6 +37,8 @@ export type Settings = {
   normalizeOutroPath: string;
   maxConcurrentDownloads: number;
   maxDownloads: number;
+  offsetDateAgo?: number; // in days
+  offsetDateType?: string;
 }
 
 export interface TikTokVideo {

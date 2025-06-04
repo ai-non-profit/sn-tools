@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { IPCEvent } from 'src/util/constant';
 import { formatViewCount } from 'src/util/common';
-import { EditOptions, TikTokVideo, UploadVideoOptions } from 'src/api/dto/event';
+import { EditOptions, Settings, TikTokVideo, UploadVideoOptions } from 'src/api/dto/event';
 import AlertDialog, { AlertProps } from 'src/dashboard/components/AlertDialog';
 import type { GridColDef } from '@mui/x-data-grid/models/colDef/gridColDef';
 import Button from '@mui/material/Button';
@@ -23,6 +23,9 @@ import { useVideoStore } from 'src/dashboard/stores/video';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import { CloseOutlined } from '@mui/icons-material';
+import FilterDialog from '../components/FilterDialog';
+import { start } from 'node:repl';
+import dayjs from 'dayjs';
 
 
 const columns: GridColDef[] = [
@@ -48,17 +51,17 @@ const columns: GridColDef[] = [
     renderCell: () => <Button variant="contained" size="small">View Online</Button>
   },
   {
-    flex: 0.1,
-    field: 'desc',
-    headerName: 'Description',
-    minWidth: 150,
+    field: 'item.createTime',
+    headerName: 'Create Time',
+    minWidth: 100,
+    valueGetter: (_val: any, row: any) => dayjs.unix(row.createTime).format('YYYY-MM-DD'),
   },
   {
     field: 'item.stats.diggCount',
     headerName: 'Digg',
     minWidth: 80,
     type: 'number',
-    valueGetter: (_val, row) => row.stats.diggCount,
+    valueGetter: (_val: any, row: any) => row.stats.diggCount,
     valueFormatter: formatViewCount,
   },
   {
@@ -66,7 +69,7 @@ const columns: GridColDef[] = [
     headerName: 'View',
     minWidth: 80,
     type: 'number',
-    valueGetter: (_val, row) => row.stats.playCount,
+    valueGetter: (_val: any, row: any) => row.stats.playCount,
     valueFormatter: formatViewCount,
   },
   {
@@ -74,7 +77,7 @@ const columns: GridColDef[] = [
     headerName: 'Share',
     minWidth: 80,
     type: 'number',
-    valueGetter: (_val, row) => row.stats.shareCount,
+    valueGetter: (_val: any, row: any) => row.stats.shareCount,
     valueFormatter: formatViewCount,
   },
 
@@ -94,10 +97,16 @@ export default function Crawler() {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [progress, setProgress] = React.useState<number>(0);
   const [open, setOpen] = React.useState(false);
+  const [openFilter, setOpenFilter] = React.useState(false);
+  const [filter, setFilter] = React.useState<any>({
+    startDate: null,
+    endDate: null,
+  });
+  const [settings, setSettings] = React.useState<Settings>({} as any);
 
   const apiRef = useGridApiRef();
 
-  columns[2].renderCell = (param) =>
+  columns[2].renderCell = (param: any) =>
     <Button variant="contained" size="small"
       onClick={() => {
         setIndex(param.api.getRowIndexRelativeToVisibleRows(param.id));
@@ -116,7 +125,11 @@ export default function Crawler() {
 
   const handleSearch = async () => {
     setIsLoading(true);
-    window.electronAPI.invokeMain<any, any>(IPCEvent.CRAWLER_VIDEO, { search })
+    const options = {
+      startDate: filter.startDate ? +filter.startDate.startOf('day').unix() : null,
+      endDate: filter.endDate ? +filter.endDate.startOf('day').unix() : null,
+    };
+    window.electronAPI.invokeMain<any, any>(IPCEvent.CRAWLER_VIDEO, { search, options })
       .then(({ data, success }) => {
         if (success === false) {
           setAlert({
@@ -135,6 +148,11 @@ export default function Crawler() {
         }));
         setIsLoading(false);
       });
+  };
+
+  const handleMoreOptions = async () => {
+    setOpen(false);
+    setOpenFilter(true);
   };
 
   const handleDownloadAll = () => {
@@ -177,7 +195,7 @@ export default function Crawler() {
       ...status,
       upload: false
     }));
-    const videosUpload = videos.filter(w => selectedRows.has(w.id)).map<UploadVideoOptions['videos'][0]>((v: any) => ({
+    const videosUpload = videos.filter((w: any) => selectedRows.has(w.id)).map<UploadVideoOptions['videos'][0]>((v: any) => ({
       title: v.desc,
       description: v.desc,
       categoryId: '22',
@@ -271,6 +289,13 @@ export default function Crawler() {
         }
       }
     });
+    window.electronAPI.invokeMain<null, Settings>(IPCEvent.GET_SETTINGS).then((settings) => {
+      setSettings(settings);
+      setFilter({
+        startDate: dayjs().subtract(+settings.offsetDateAgo || 5, settings.offsetDateType as any || 'months'),
+        endDate: dayjs(),
+      });
+    });
   }, []);
 
 
@@ -283,10 +308,18 @@ export default function Crawler() {
       <Card sx={{ minWidth: 275, marginBottom: 2 }}>
         <CardContent>
           <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              variant="outlined"
+              size="medium"
+              onClick={handleMoreOptions}
+              sx={{ whiteSpace: 'nowrap' }}
+            >
+              Options
+            </Button>
             <FormControl variant="outlined" sx={{ width: 200 }}>
               <Select
                 value={type}
-                onChange={(e) => setType(e.target.value)}
+                onChange={(e: any) => setType(e.target.value)}
                 displayEmpty
               >
                 <MenuItem value="search">Search Box</MenuItem>
@@ -300,7 +333,7 @@ export default function Crawler() {
                 id="search"
                 placeholder="Search video on tiktok"
                 onKeyUp={handleKeyUp}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e: any) => setSearch(e.target.value)}
                 startAdornment={
                   <InputAdornment position="start" sx={{ color: 'text.primary' }}>
                     <SearchRoundedIcon fontSize="small" />
@@ -320,6 +353,7 @@ export default function Crawler() {
             >
               Search
             </Button>
+
           </Box>
         </CardContent>
 
@@ -342,7 +376,7 @@ export default function Crawler() {
           rows={videos}
           columns={columns}
           autoHeight
-          getRowId={row => row.id}
+          getRowId={(row: any) => row.id}
           checkboxSelection
           disableRowSelectionOnClick
           disableColumnSelector
@@ -361,28 +395,39 @@ export default function Crawler() {
         {...alert}
         onClose={closeAlert}
       />
-      <Dialog
-        fullScreen
-        open={open}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-        onClose={(event, reason) => {
-          if (reason !== 'backdropClick') {
-            setOpen(false);
-          }
-        }}
-      >
-        <DialogContent sx={{ padding: 0, backgroundColor: '#2C2F33', color: '#FFFFFF' }}>
-          <IconButton
-            sx={{ position: 'absolute', top: 10, left: 0, color: '#FFFFFF', zIndex: 100 }}
-            onClick={() => setOpen(false)}
-          >
-            <CloseOutlined/>
-          </IconButton>
-          
-          <TikTokStylePage />
-        </DialogContent>
-      </Dialog>
+      {open &&
+        <Dialog
+          fullScreen
+          open={open}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+          onClose={(event: any, reason: any) => {
+            if (reason !== 'backdropClick') {
+              setOpen(false);
+            }
+          }}
+        >
+          <DialogContent sx={{ padding: 0, backgroundColor: '#2C2F33', color: '#FFFFFF' }}>
+            <IconButton
+              sx={{ position: 'absolute', top: 10, left: 0, color: '#FFFFFF', zIndex: 100 }}
+              onClick={() => setOpen(false)}
+            >
+              <CloseOutlined />
+            </IconButton>
+
+            <TikTokStylePage />
+          </DialogContent>
+        </Dialog>
+      }
+      {
+        openFilter &&
+        <FilterDialog
+          open={openFilter}
+          setOpen={setOpenFilter}
+          handleApply={setFilter}
+          initStart={filter.startDate}
+          initEnd={filter.endDate} />
+      }
     </Box>
   );
 }

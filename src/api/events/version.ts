@@ -3,6 +3,11 @@ import { IPCEvent } from 'src/util/constant';
 import { getSettings } from '../dal/setting';
 import { TranscriptRequest } from 'src/util/dto';
 
+interface Options {
+  startDate: number;
+  endDate: number;
+  maxDownloads: number;
+}
 
 async function getVideoInformation(creatorId: string, videoId: string, cookies: string): Promise<Record<string, any>> {
   const videoInfo = await fetch(`https://www.tiktok.com/@${creatorId}/video/${videoId}`, {
@@ -69,7 +74,9 @@ export async function getTranscript(creatorId: string, videoId: string, musicURL
   }
 }
 
-export async function searchTiktok(search: string, cookies: string): Promise<any> {
+export async function searchTiktok(search: string, cookies: string, { maxDownloads, startDate, endDate }: Options): Promise<any> {
+  console.log(startDate);
+  console.log(endDate);
   const options = {
     method: 'GET',
     headers: {
@@ -123,7 +130,7 @@ export async function searchTiktok(search: string, cookies: string): Promise<any
   let url = 'https://www.tiktok.com/api/search/general/full/?' + params.toString();
   const result: any[] = [];
   let json: any = null;
-  do {
+  main: do {
     console.count('Page');
     url = 'https://www.tiktok.com/api/search/general/full/?' + params.toString();
     const res = await fetch(url, options);
@@ -134,10 +141,14 @@ export async function searchTiktok(search: string, cookies: string): Promise<any
     params.set('offset', json?.cursor || '0');
     params.set('search_id', json?.extra?.logid || '');
     options.headers.Cookie = cookies + '; ' + msToken;
-    json?.data?.forEach(({ type, item }: any) => {
-      if (type !== 1) return;
-      result.push(item)
-    });
+    for (const { type, item } of json?.data || []) {
+      if (type !== 1 || item.createTime <= startDate || item.createTime >= endDate) continue;
+      result.push(item);
+      if (result.length >= maxDownloads) {
+        console.log('Max downloads reached:', maxDownloads);
+        break main;
+      }
+    }
   } while (json?.has_more === 1)
   return {
     success: true,
@@ -156,11 +167,12 @@ const initialize = (_: BrowserWindow) => {
     return getTranscript(creatorId, videoId, musicURL, cookies);
   });
 
-  ipcMain.handle(IPCEvent.CRAWLER_VIDEO, async (_, { search, type }) => {
+  ipcMain.handle(IPCEvent.CRAWLER_VIDEO, async (_, { search, type, options }) => {
     const settings = getSettings();
     const cookies = settings.tiktokCookies;
+    const maxDownload = settings.maxDownloads || 100;
     try {
-      return searchTiktok(search, cookies);
+      return searchTiktok(search, cookies, {...options, maxDownloads: maxDownload });
     } catch (error) {
       console.error('Error fetching TikTok videos:', error);
       return {

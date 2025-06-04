@@ -14,6 +14,8 @@ const store: Store = new Store<StoreType>({
       outroFolder: './downloads/outro.mp4',
       maxDownloads: 100,
       maxConcurrentDownloads: 3,
+      offsetDateAgo: 5,
+      offsetDateType: 'months'
     }
   }
 });
