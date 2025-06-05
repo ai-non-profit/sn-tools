@@ -139,7 +139,9 @@ export async function searchTiktok(search: string, cookies: string, { maxDownloa
     params.set('focus_state', 'false');
     params.set('msToken', msToken.match(/msToken=([^;]+)/)[1]);
     params.set('offset', json?.cursor || '0');
-    params.set('search_id', json?.extra?.logid || '');
+    if (!params.has('search_id')) {
+      params.set('search_id', json?.extra?.logid || '');
+    }
     options.headers.Cookie = cookies + '; ' + msToken;
     for (const { type, item } of json?.data || []) {
       if (type !== 1 || item.createTime <= startDate || item.createTime >= endDate) continue;
@@ -150,6 +152,7 @@ export async function searchTiktok(search: string, cookies: string, { maxDownloa
       }
     }
   } while (json?.has_more === 1)
+  console.countReset('Page');
   return {
     success: true,
     data: result,
@@ -172,7 +175,7 @@ const initialize = (_: BrowserWindow) => {
     const cookies = settings.tiktokCookies;
     const maxDownload = settings.maxDownloads || 100;
     try {
-      return searchTiktok(search, cookies, {...options, maxDownloads: maxDownload });
+      return searchTiktok(search, cookies, { ...options, maxDownloads: maxDownload });
     } catch (error) {
       console.error('Error fetching TikTok videos:', error);
       return {

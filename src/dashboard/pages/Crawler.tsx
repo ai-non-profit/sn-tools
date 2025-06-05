@@ -24,17 +24,17 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import { CloseOutlined } from '@mui/icons-material';
 import FilterDialog from '../components/FilterDialog';
-import { start } from 'node:repl';
 import dayjs from 'dayjs';
 
 
 const columns: GridColDef[] = [
-  { field: 'item.id', headerName: 'ID', width: 90, valueGetter: (_val, row) => row.id },
+  { flex: 0.05, field: 'item.id', headerName: 'ID', width: 90, valueGetter: (_val, row) => row.id },
   {
-    flex: 0.025,
+    flex: 0.08,
     field: 'item.video.cover',
     headerName: 'Thumbnail',
-    minWidth: 200,
+    maxWidth: 200,
+    minWidth: 150,
     renderCell: (params: any) => (
       <img
         src={params.row.video.cover}
@@ -45,10 +45,18 @@ const columns: GridColDef[] = [
     ),
   },
   {
+    flex: 0.03,
     field: 'item.video.playAddr',
     headerName: 'Video',
     minWidth: 130,
     renderCell: () => <Button variant="contained" size="small">View Online</Button>
+  },
+  {
+    flex: 0.125,
+    field: 'desc',
+    headerName: 'Description',
+    minWidth: 100,
+    valueGetter: (_val: any, row: any) => row.desc,
   },
   {
     field: 'item.createTime',
@@ -211,6 +219,14 @@ export default function Crawler() {
     setAlert((alert: any) => ({ ...alert, isOpen: false }));
   };
 
+  const handleSetFilter = (dateRange: { startDate: any; endDate: any }) => {
+    setOpenFilter(false);
+    setFilter({
+      startDate: dateRange.startDate,
+      endDate: dateRange.endDate,
+    });
+  };
+
   React.useEffect(() => {
     window.electronAPI?.onMessageFromMain(({ event, data }) => {
       console.log('Event received:', event, data);
@@ -297,6 +313,8 @@ export default function Crawler() {
       });
     });
   }, []);
+
+  console.log(videos);
 
 
   return (
@@ -424,9 +442,10 @@ export default function Crawler() {
         <FilterDialog
           open={openFilter}
           setOpen={setOpenFilter}
-          handleApply={setFilter}
+          handleApply={handleSetFilter}
           initStart={filter.startDate}
-          initEnd={filter.endDate} />
+          initEnd={filter.endDate}
+        />
       }
     </Box>
   );
