@@ -8,12 +8,21 @@ import initEdit from './api/events/edit-video';
 import initSelectFolder from './api/events/setting';
 import fixPath from 'fix-path';
 import initVersion from './api/events/version';
-import http2 from 'node:http2';
 import { PassThrough } from 'node:stream';
 import { getSettings } from './api/dal/setting';
 import initYoutube from './api/events/youtube';
+import { autoUpdater } from 'electron-updater';
 
 fixPath();
+
+autoUpdater.setFeedURL({
+  provider: 'github',
+  owner: 'ai-non-profit',
+  repo: 'sn-tools',
+  private: true,
+  token: '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'
+});
+
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -36,6 +45,8 @@ const createWindow = () => {
       webSecurity: false,
     },
   });
+
+  autoUpdater.checkForUpdatesAndNotify();
 
   // Register custom protocol
   protocol.registerStreamProtocol('stream', (request, callback) => {
