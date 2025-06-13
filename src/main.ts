@@ -1,4 +1,4 @@
-import { app, BrowserWindow, net, protocol, session } from 'electron';
+import { app, BrowserWindow, net, protocol } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import initDownload from './api/events/download-video';
@@ -12,8 +12,12 @@ import { PassThrough } from 'node:stream';
 import { getSettings } from './api/dal/setting';
 import initYoutube from './api/events/youtube';
 import { autoUpdater } from 'electron-updater';
+import log from 'electron-log';
 
 fixPath();
+
+log.transports.file.level = 'info';
+autoUpdater.logger = log;
 
 autoUpdater.setFeedURL({
   provider: 'github',
@@ -21,6 +25,26 @@ autoUpdater.setFeedURL({
   repo: 'sn-tools',
   private: true,
   token: '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'
+});
+
+autoUpdater.on('checking-for-update', () => {
+  log.info('Checking for update...');
+});
+autoUpdater.on('update-available', (info) => {
+  log.info('Update available.', info);
+});
+autoUpdater.on('update-not-available', (info) => {
+  log.info('Update not available.', info);
+});
+autoUpdater.on('error', (err) => {
+  log.error('Update error:', err);
+});
+autoUpdater.on('download-progress', (progressObj) => {
+  log.info(`Download speed: ${progressObj.bytesPerSecond}`);
+});
+autoUpdater.on('update-downloaded', () => {
+  log.info('Update downloaded, will quit and install');
+  autoUpdater.quitAndInstall();
 });
 
 
@@ -56,7 +80,7 @@ const createWindow = () => {
     const videoStream = new PassThrough();
     const settings = getSettings();
 
-    console.log('Streaming video from URL:', videoUrl);
+    log.info('Streaming video from URL:' + videoUrl);
 
     const clientRequest = net.request({
       method: 'GET',
@@ -72,7 +96,7 @@ const createWindow = () => {
       res.on('data', chunk => videoStream.write(chunk));
       res.on('end', () => videoStream.end());
       res.on('error', err => {
-        console.error('Streaming error:', err);
+        log.error('Streaming error:', err);
         videoStream.destroy(err);
       });
 

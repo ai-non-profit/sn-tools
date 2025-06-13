@@ -6,6 +6,7 @@ import fs, { unlink, unlinkSync } from "fs";
 import { exec } from "child_process";
 import { getSettings } from "../dal/setting";
 import { ffmpegPath } from "../util";
+import log from 'electron-log';
 
 let isRunning = false;
 
@@ -15,7 +16,7 @@ const initialize = (mainWindow: BrowserWindow) => {
   let editDir = path.resolve("downloads/edited");
 
   ipcMain.on(IPCEvent.EDIT_VIDEO, async (_, { videoPath, videos }: EditOptions) => {
-    console.log("Start edit video");
+    log.info("Start edit video");
     if (isRunning) {
       console.warn("Edit process is already running. Ignoring this request.");
       return;
@@ -38,7 +39,7 @@ const initialize = (mainWindow: BrowserWindow) => {
           await appendOutroToVideo(video.localPath.raw, videoPath ?? settings.normalizeOutroPath, editDir);
           editPath.push(path.join(editDir, path.basename(video.localPath.raw)));
         } catch (err) {
-          console.error(`❌ Failed to process ${video}`, err);
+          log.error(`❌ Failed to process ${video}`, err);
           editPath.push(null);
         }
       }
@@ -51,7 +52,7 @@ const initialize = (mainWindow: BrowserWindow) => {
         }
       });
     } catch (err) {
-      console.error("Error editing video:", err);
+      log.error("Error editing video:", err);
       mainWindow.webContents.send(IPCEvent.FROM_MAIN, {
         event: IPCEvent.EDIT_VIDEO_PROGRESS,
         data: {
@@ -85,16 +86,16 @@ export async function appendOutroToVideo(videoPath: string, outroPath: string, o
 
   const cmd = `"${ffmpegPath}" -y -f concat -safe 0 -i "${tempListPath}" -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k "${outputPath}/${path.basename(videoPath)}"`;
 
-  console.log(`Executing command: ${cmd}`);
+  log.info(`Executing command: ${cmd}`);
 
   return new Promise((resolve, reject) => {
     exec(cmd, (err, stdout, stderr) => {
       unlinkSync(tempListPath);
       if (err) {
-        console.error(stderr);
+        log.error(stderr);
         return reject(err);
       }
-      console.log(`✅ Created: ${outputPath}`);
+      log.info(`✅ Created: ${outputPath}`);
       resolve();
     });
   });

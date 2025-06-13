@@ -1,14 +1,15 @@
 import { BrowserWindow, ipcMain } from "electron";
 import { IPCEvent } from "src/util/constant";
 import { getAuthenticatedClient } from "../service/google.service";
+import log from 'electron-log';
 
 const initialize = (mainWindow: BrowserWindow) => {
 
   ipcMain.on(IPCEvent.LOGIN_GOOGLE, async (event) => {
-    console.log("Login google:");
+    log.info("Login google:");
 
     const client = await getAuthenticatedClient();
-    console.log(client);
+    log.info(client);
     
     
 

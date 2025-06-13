@@ -5,22 +5,23 @@ import { Settings } from "../dto/event";
 import path from "path";
 import { formatVideo } from "../service/video.service";
 import store from "../dal/store";
+import log from 'electron-log';
 
 const initialize = (mainWindow: BrowserWindow) => {
   ipcMain.handle(IPCEvent.SET_STORE, async (_, { key, value }) => {
-    console.log("Set store key:", key);
+    log.info("Set store key:", key);
     return store.set(key, value);
   });
   ipcMain.handle(IPCEvent.GET_STORE, async (_, { key }) => {
-    console.log("Get store key:", key);
+    log.info("Get store key:", key);
     return store.get(key);
   });
   ipcMain.handle(IPCEvent.GET_SETTINGS, async (_) => {
-    console.log("Get settings");
+    log.info("Get settings");
     return getSettings();
   });
   ipcMain.handle(IPCEvent.SAVE_SETTINGS, async (_, data: Partial<Settings>) => {
-    console.log("Save settings");
+    log.info("Save settings");
     const currSettings = getSettings();
     if (data.outroPath && currSettings.outroPath !== data.outroPath) {
       const normalizeOutroPath = path.join(data.downloadDir ?? currSettings.downloadDir, 'normalize_outro.mp4');
@@ -32,7 +33,7 @@ const initialize = (mainWindow: BrowserWindow) => {
   });
 
   ipcMain.handle(IPCEvent.SELECT_FOLDER, async (_) => {
-    console.log("Select folder");
+    log.info("Select folder");
     const result = await dialog.showOpenDialog(mainWindow, {
       properties: ["openDirectory"],
     });
@@ -40,12 +41,12 @@ const initialize = (mainWindow: BrowserWindow) => {
       return null;
     }
     const folderPath = result.filePaths[0];
-    console.log("Selected folder:", folderPath);
+    log.info("Selected folder:", folderPath);
     return folderPath;
   });
 
   ipcMain.handle(IPCEvent.SELECT_FILE, async (_, data = ['mp4', 'mov']) => {
-    console.log("Select file");
+    log.info("Select file");
     const result = await dialog.showOpenDialog(mainWindow, {
       properties: ['openFile'],
       filters: [
@@ -57,7 +58,7 @@ const initialize = (mainWindow: BrowserWindow) => {
       return null;
     }
     const folderPath = result.filePaths[0];
-    console.log("Selected folder:", folderPath);
+    log.info("Selected folder:", folderPath);
     return folderPath;
   });
 }

@@ -9,6 +9,7 @@ import { exec } from 'child_process';
 import { getSettings } from '../dal/setting';
 import { ffmpegPath } from '../util';
 import { getTranscript } from 'src/api/events/version';
+import log from 'electron-log';
 
 const limit = pLimit(3);
 let isProcessing = false;
@@ -19,15 +20,15 @@ const initialize = (mainWindow: BrowserWindow) => {
   let rawDir = '';
 
   ipcMain.on(IPCEvent.DOWNLOAD_VIDEOS, async (_, data: TikTokVideo[]) => {
-    console.log('start download videos:', data.length);
+    log.info('start download videos:', data.length);
     if (isProcessing) {
-      console.log('Download already in progress');
+      log.info('Download already in progress');
       return;
     }
     isProcessing = true;
 
     const settings = getSettings();
-    console.log(settings.tiktokCookies);
+    log.info(settings.tiktokCookies);
 
     downloadDir = settings.downloadDir + '/original';
     outroDir = settings.downloadDir + '/outro';
@@ -48,14 +49,14 @@ const initialize = (mainWindow: BrowserWindow) => {
       return limit((): Promise<TikTokVideo> =>
         downloadVideo(dest, url, settings.tiktokCookies)
           .then(async (pth) => {
-            console.log('File downloaded to:', pth);
+            log.info('File downloaded to:', pth);
             if (!startOutro || startOutro <= 0) {
               // if not manually set, calculate startOutro based on duration
               if (!transcript || transcript.length === 0) {
                 const rs = await getTranscript(author.uniqueId, id, music.playUrl, settings.tiktokCookies);
                 transcript = rs.data;
               }
-              console.log(transcript);
+              log.info(transcript);
               if (transcript?.length) {
                 const lastTranscript = transcript[transcript.length - 1];
                 startOutro = lastTranscript && lastTranscript.end_time < duration * 1000
@@ -66,7 +67,7 @@ const initialize = (mainWindow: BrowserWindow) => {
             startOutro = startOutro || duration - 5; // Default to 5 seconds before the end if not specified
             const outroPath = await cutVideo(pth, outroDir, startOutro);
             const rawPath = await cutVideo(pth, rawDir, 0, duration - startOutro);
-            console.log('Outro cutted to:', outroPath);
+            log.info('Outro cutted to:', outroPath);
             return {
               ...d,
               id,
@@ -83,8 +84,8 @@ const initialize = (mainWindow: BrowserWindow) => {
             };
           })
           .catch((err) => {
-            console.error(err);
-            console.error('Error downloading file:', err.message);
+            log.error(err);
+            log.error('Error downloading file:', err.message);
             return d;
           })
       );
@@ -92,7 +93,7 @@ const initialize = (mainWindow: BrowserWindow) => {
 
     Promise.all(tasks)
       .then((tasks) => {
-        console.log('All files downloaded');
+        log.info('All files downloaded');
         mainWindow.webContents.send(IPCEvent.FROM_MAIN, {
           event: IPCEvent.DOWNLOAD_PROGRESS,
           data: {
@@ -102,7 +103,7 @@ const initialize = (mainWindow: BrowserWindow) => {
           }
         });
       }).catch((err) => {
-        console.error('Error downloading files:', err.message);
+        log.error('Error downloading files:', err.message);
         mainWindow.webContents.send(IPCEvent.FROM_MAIN, {
           event: IPCEvent.DOWNLOAD_PROGRESS,
           data: {

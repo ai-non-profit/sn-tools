@@ -1,5 +1,6 @@
 import { getAuthenticatedClient } from './google.service';
 import { google } from 'googleapis';
+import log from 'electron-log';
 
 describe('getAuthenticatedClient', () => {
 
@@ -9,6 +10,6 @@ describe('getAuthenticatedClient', () => {
     const me = await people.people.get({
       resourceName: 'people/me',
     });
-    console.log(me);
+    log.info(me);
   });
 });

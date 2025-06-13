@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import { IPCEvent } from 'src/util/constant';
 import { getSettings } from '../dal/setting';
 import { TranscriptRequest } from 'src/util/dto';
+import log from 'electron-log';
 
 interface Options {
   startDate: number;
@@ -31,7 +32,7 @@ async function getVideoInformation(creatorId: string, videoId: string, cookies: 
   try {
     return JSON.parse(jsonStr);
   } catch (err) {
-    console.error('Failed to parse JSON:', err);
+    log.error('Failed to parse JSON:', err);
     return null;
   }
 }
@@ -41,7 +42,7 @@ export async function getTranscript(creatorId: string, videoId: string, musicURL
     const videoInfo = await getVideoInformation(creatorId, videoId, cookies);
     musicURL = videoInfo?.__DEFAULT_SCOPE__?.['webapp.video-detail']?.itemInfo?.itemStruct?.music?.playUrl;
   }
-  console.log('musicURL', musicURL);
+  log.info('musicURL', musicURL);
 
   const musicRes = await fetch(musicURL, {
     method: 'GET',
@@ -52,7 +53,7 @@ export async function getTranscript(creatorId: string, videoId: string, musicURL
   });
 
   if (!musicRes.ok) {
-    console.error('Failed to fetch music:', musicRes.statusText);
+    log.error('Failed to fetch music:', musicRes.statusText);
     return [];
   }
 
@@ -70,7 +71,7 @@ export async function getTranscript(creatorId: string, videoId: string, musicURL
   try {
     return (await res.json())?.data;
   } catch (e) {
-    console.error(res);
+    log.error(res);
     return [];
   }
 }
@@ -146,7 +147,7 @@ export async function searchTiktok(search: string, cookies: string, { maxDownloa
       if (type !== 1 || item.createTime <= startDate || item.createTime >= endDate) continue;
       result.push(item);
       if (result.length >= maxDownloads) {
-        console.log('Max downloads reached:', maxDownloads);
+        log.info('Max downloads reached:', maxDownloads);
         break main;
       }
     }
@@ -176,7 +177,7 @@ const initialize = (_: BrowserWindow) => {
     try {
       return searchTiktok(search, cookies, { ...options, maxDownloads: maxDownload });
     } catch (error) {
-      console.error('Error fetching TikTok videos:', error);
+      log.error('Error fetching TikTok videos:', error);
       return {
         success: false,
         message: 'Failed to fetch TikTok videos',
