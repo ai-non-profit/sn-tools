@@ -96,11 +96,6 @@ export default function Crawler() {
   const [type, setType] = React.useState<string>('search');
   const [search, setSearch] = React.useState<string>('');
   const { videos, setVideos, setIndex, setEditVideo } = useVideoStore();
-  const [status, setStatus] = React.useState({
-    download: false,
-    append: false,
-    upload: false,
-  });
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [progress, setProgress] = React.useState<number>(0);
   const [open, setOpen] = React.useState(false);
@@ -109,7 +104,6 @@ export default function Crawler() {
     startDate: null,
     endDate: null,
   });
-  const [settings, setSettings] = React.useState<Settings>({} as any);
 
   const apiRef = useGridApiRef();
 
@@ -144,10 +138,6 @@ export default function Crawler() {
           return;
         }
         setVideos(data);
-        setStatus((status) => ({
-          ...status,
-          download: !!data.length
-        }));
         setIsLoading(false);
       });
   };
@@ -164,11 +154,6 @@ export default function Crawler() {
       return;
     }
     setIsLoading(true);
-    setStatus((status) => ({
-      ...status,
-      upload: false,
-      download: false
-    }));
     setProgress(50);
     const videoDownloads: TikTokVideo[] = [];
     videos.forEach((v: any) => {
@@ -180,10 +165,6 @@ export default function Crawler() {
 
   const handleAppendOutro = () => {
     setIsLoading(true);
-    setStatus((status) => ({
-      ...status,
-      append: true
-    }));
     if (videos.length === 0) {
       alert('Not found any video to append outro');
       return;
@@ -193,10 +174,6 @@ export default function Crawler() {
 
   const uploadYoutube = () => {
     const selectedRows = apiRef.current.getSelectedRows();
-    setStatus((status) => ({
-      ...status,
-      upload: false
-    }));
     const videosUpload = videos.filter((w: any) => selectedRows.has(w.id)).map<UploadVideoOptions['videos'][0]>((v: any) => ({
       title: v.desc,
       description: v.desc,
@@ -227,25 +204,21 @@ export default function Crawler() {
       console.log('Event received:', event, data);
       if (event === IPCEvent.DOWNLOAD_PROGRESS) {
         setIsLoading(false);
-        setStatus(status => ({ ...status, download: true, append: true, upload: false }));
         if (data.error) {
           alert(data.message || data.error);
           setProgress(0);
           return;
         }
-        if (data.percent === 100) {
+        if (data.percent === 100 && progress < 100) {
           alert('Download completed');
           console.log(data);
-          setTimeout(() => {
-            setProgress(0);
-          }, 2000);
+          setProgress(0);
           setVideos(data.data);
           return;
         }
       }
       else if (event === IPCEvent.EDIT_VIDEO_PROGRESS) {
         setIsLoading(false);
-        setStatus(status => ({ ...status, append: false, upload: true }));
         if (data.percent === 100) {
           console.log(data.data);
           alert('Append outro video completed');
@@ -258,7 +231,6 @@ export default function Crawler() {
         }
       }
       else if (event === IPCEvent.UPLOAD_VIDEO_PROGRESS) {
-        setStatus(status => ({ ...status, upload: true }));
         if (data.percent === 100) {
           alert('Upload video completed');
           return;
@@ -337,7 +309,7 @@ export default function Crawler() {
         </CardContent>
 
         <CardActions sx={{ pt: 1 }}>
-          <Button variant="contained" size="small" onClick={handleDownloadAll} disabled={!status.download}>
+          <Button variant="contained" size="small" onClick={handleDownloadAll}>
             Download
           </Button>
           <Button variant="contained" size="small" onClick={handleAppendOutro}>
