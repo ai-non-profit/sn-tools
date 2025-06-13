@@ -164,7 +164,7 @@ const cutVideo = (
       durationArg = `-t ${endSecond - startSecond}`;
     }
     const outputPath = `${outDir}/${path.basename(videoPath)}`;
-    const command = `${ffmpegPath} -y -ss ${startSecond} -i "${videoPath}" -movflags +faststart ${durationArg} -c copy "${outputPath}"`;
+    const command = `"${ffmpegPath}" -y -ss ${startSecond} -i "${videoPath}" -movflags +faststart ${durationArg} -c copy "${outputPath}"`;
 
     exec(command, (err) => {
       if (err) reject(err);

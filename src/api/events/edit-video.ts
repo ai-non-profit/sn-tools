@@ -83,7 +83,7 @@ export async function appendOutroToVideo(videoPath: string, outroPath: string, o
   const content = `file '${videoPath.replace(/'/g, "'\\''")}'\nfile '${outroPath.replace(/'/g, "'\\''")}'`;
   fs.writeFileSync(tempListPath, content);
 
-  const cmd = `${ffmpegPath} -y -f concat -safe 0 -i "${tempListPath}" -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k "${outputPath}/${path.basename(videoPath)}"`;
+  const cmd = `"${ffmpegPath}" -y -f concat -safe 0 -i "${tempListPath}" -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k "${outputPath}/${path.basename(videoPath)}"`;
 
   console.log(`Executing command: ${cmd}`);
 

@@ -4,7 +4,7 @@ import { ffmpegPath } from '../util';
 
 export const formatVideo = (inputPath: string, outputPath: string): Promise<void> => {
 
-  const cmd = `${ffmpegPath} -y -i ${inputPath} -c:v libx264 -c:a aac ${outputPath}`;
+  const cmd = `"${ffmpegPath}" -y -i ${inputPath} -c:v libx264 -c:a aac ${outputPath}`;
 
   console.log(`Executing command: ${cmd}`);
 
