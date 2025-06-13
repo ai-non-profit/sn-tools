@@ -9,9 +9,9 @@ import { getSettings } from "../dal/setting";
 let isProcessing = false;
 
 const initialize = (mainWindow: BrowserWindow) => {
-
   ipcMain.on(IPCEvent.UPLOAD_VIDEO, async (_, data: UploadVideoOptions) => {
     if (isProcessing) {
+      console.log("Upload already in progress");
       mainWindow.webContents.send(IPCEvent.UPLOAD_VIDEO_PROGRESS, {
         event: IPCEvent.UPLOAD_VIDEO_PROGRESS,
         data: {
@@ -54,9 +54,6 @@ const initialize = (mainWindow: BrowserWindow) => {
     } finally {
       isProcessing = false;
     }
-
-
-    // Do something with data (like start a download process)
   });
 }
 

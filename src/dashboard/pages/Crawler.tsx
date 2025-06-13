@@ -93,7 +93,6 @@ const columns: GridColDef[] = [
 ];
 
 export default function Crawler() {
-  const [alert, setAlert] = React.useState<AlertProps>();
   const [type, setType] = React.useState<string>('search');
   const [search, setSearch] = React.useState<string>('');
   const { videos, setVideos, setIndex, setEditVideo } = useVideoStore();
@@ -140,12 +139,7 @@ export default function Crawler() {
     window.electronAPI.invokeMain<any, any>(IPCEvent.CRAWLER_VIDEO, { search, options })
       .then(({ data, success }) => {
         if (success === false) {
-          setAlert({
-            isOpen: true,
-            title: 'Error',
-            message: data.message,
-            type: 'error'
-          });
+          alert(data.message || 'Failed to fetch videos');
           setIsLoading(false);
           return;
         }
@@ -166,12 +160,8 @@ export default function Crawler() {
   const handleDownloadAll = () => {
     const selectedRows = apiRef.current.getSelectedRows();
     if (!selectedRows.size) {
-      return setAlert({
-        isOpen: true,
-        title: 'Warning',
-        message: 'Please select a least one video to download',
-        type: 'warning'
-      });
+      alert('Please select at least one video to download');
+      return;
     }
     setIsLoading(true);
     setStatus((status) => ({
@@ -194,6 +184,10 @@ export default function Crawler() {
       ...status,
       append: true
     }));
+    if (videos.length === 0) {
+      alert('Not found any video to append outro');
+      return;
+    }
     window.electronAPI.sendToMain<EditOptions>(IPCEvent.EDIT_VIDEO, { videos });
   };
 
@@ -210,13 +204,13 @@ export default function Crawler() {
       privacyStatus: 'private',
       fileName: v.id + '.' + v.video.format,
     }));
+    if (videosUpload.length === 0) {
+      alert('Not found any video to upload');
+      return;
+    }
     window.electronAPI.sendToMain(IPCEvent.UPLOAD_VIDEO, {
       videos: videosUpload
     });
-  };
-
-  const closeAlert = () => {
-    setAlert((alert: any) => ({ ...alert, isOpen: false }));
   };
 
   const handleSetFilter = (dateRange: { startDate: any; endDate: any }) => {
@@ -228,34 +222,24 @@ export default function Crawler() {
   };
 
   React.useEffect(() => {
+    console.log('Crawler component mounted');
     window.electronAPI?.onMessageFromMain(({ event, data }) => {
       console.log('Event received:', event, data);
       if (event === IPCEvent.DOWNLOAD_PROGRESS) {
         setIsLoading(false);
         setStatus(status => ({ ...status, download: true, append: true, upload: false }));
         if (data.error) {
-          setAlert({
-            isOpen: true,
-            title: 'Error',
-            message: data.message ?? data.error,
-            type: 'error'
-          });
+          alert(data.message || data.error);
           setProgress(0);
           return;
         }
         if (data.percent === 100) {
+          alert('Download completed');
           console.log(data);
-          setProgress(100);
           setTimeout(() => {
             setProgress(0);
           }, 2000);
           setVideos(data.data);
-          setAlert({
-            isOpen: true,
-            title: 'Success',
-            message: 'Download completed',
-            type: 'success'
-          });
           return;
         }
       }
@@ -264,57 +248,34 @@ export default function Crawler() {
         setStatus(status => ({ ...status, append: false, upload: true }));
         if (data.percent === 100) {
           console.log(data.data);
-          setAlert({
-            isOpen: true,
-            title: 'Success',
-            message: 'Append outro video completed',
-            type: 'success'
-          });
+          alert('Append outro video completed');
           setEditVideo(data.data);
           return;
         }
         if (data.error) {
-          setAlert({
-            isOpen: true,
-            title: 'Error',
-            message: data.message ?? data.error,
-            type: 'error'
-          });
+          alert(data.message || data.error);
           return;
         }
       }
       else if (event === IPCEvent.UPLOAD_VIDEO_PROGRESS) {
         setStatus(status => ({ ...status, upload: true }));
         if (data.percent === 100) {
-          setAlert({
-            isOpen: true,
-            title: 'Success',
-            message: 'Upload video completed',
-            type: 'success'
-          });
+          alert('Upload video completed');
           return;
         }
         if (data.error) {
-          setAlert({
-            isOpen: true,
-            title: 'Error',
-            message: data.message ?? data.error,
-            type: 'error'
-          });
+          alert(data.message || data.error);
           return;
         }
       }
     });
     window.electronAPI.invokeMain<null, Settings>(IPCEvent.GET_SETTINGS).then((settings) => {
-      setSettings(settings);
       setFilter({
         startDate: dayjs().subtract(+settings.offsetDateAgo || 5, settings.offsetDateType as any || 'months'),
         endDate: dayjs(),
       });
     });
   }, []);
-
-  console.log(videos);
 
 
   return (
@@ -379,10 +340,10 @@ export default function Crawler() {
           <Button variant="contained" size="small" onClick={handleDownloadAll} disabled={!status.download}>
             Download
           </Button>
-          <Button variant="contained" size="small" onClick={handleAppendOutro} disabled={!status.append}>
+          <Button variant="contained" size="small" onClick={handleAppendOutro}>
             Append Outro
           </Button>
-          <Button variant="contained" size="small" onClick={uploadYoutube} disabled={!status.upload}>
+          <Button variant="contained" size="small" onClick={uploadYoutube}>
             Upload Youtube
           </Button>
         </CardActions>
@@ -409,10 +370,6 @@ export default function Crawler() {
           }}
         />
       </Box>
-      <AlertDialog
-        {...alert}
-        onClose={closeAlert}
-      />
       {open &&
         <Dialog
           fullScreen

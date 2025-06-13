@@ -15,6 +15,9 @@ export enum IPCEvent {
   SAVE_SETTINGS = 'save-settings',
   GET_VERSION = 'get-version',
   GET_TRANSCRIPT = 'get-transcript',
+  LOGIN_YOUTUBE = 'login-youtube',
+  GET_STORE = 'get-store',
+  SET_STORE = 'set-store',
 }
 
 

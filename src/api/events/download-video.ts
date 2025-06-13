@@ -11,6 +11,7 @@ import { ffmpegPath } from '../util';
 import { getTranscript } from 'src/api/events/version';
 
 const limit = pLimit(3);
+let isProcessing = false;
 
 const initialize = (mainWindow: BrowserWindow) => {
   let downloadDir = '';
@@ -19,6 +20,11 @@ const initialize = (mainWindow: BrowserWindow) => {
 
   ipcMain.on(IPCEvent.DOWNLOAD_VIDEOS, async (_, data: TikTokVideo[]) => {
     console.log('start download videos:', data.length);
+    if (isProcessing) {
+      console.log('Download already in progress');
+      return;
+    }
+    isProcessing = true;
 
     const settings = getSettings();
     console.log(settings.tiktokCookies);
@@ -43,16 +49,19 @@ const initialize = (mainWindow: BrowserWindow) => {
         downloadVideo(dest, url, settings.tiktokCookies)
           .then(async (pth) => {
             console.log('File downloaded to:', pth);
-            if (!transcript || transcript.length === 0) {
-              const rs = await getTranscript(author.uniqueId, id, music.playUrl, settings.tiktokCookies);
-              if (rs.success) transcript = rs.data;
-            }
-            console.log(transcript);
-            if (!startOutro && transcript?.length) {
-              const lastTranscript = transcript[transcript.length - 1];
-              startOutro = lastTranscript && lastTranscript.end_time < duration * 1000
-                ? lastTranscript.end_time / 1000
-                : lastTranscript.start_time / 1000;
+            if (!startOutro || startOutro <= 0) {
+              // if not manually set, calculate startOutro based on duration
+              if (!transcript || transcript.length === 0) {
+                const rs = await getTranscript(author.uniqueId, id, music.playUrl, settings.tiktokCookies);
+                transcript = rs.data;
+              }
+              console.log(transcript);
+              if (transcript?.length) {
+                const lastTranscript = transcript[transcript.length - 1];
+                startOutro = lastTranscript && lastTranscript.end_time < duration * 1000
+                  ? lastTranscript.end_time / 1000
+                  : lastTranscript.start_time / 1000;
+              }
             }
             startOutro = startOutro || duration - 5; // Default to 5 seconds before the end if not specified
             const outroPath = await cutVideo(pth, outroDir, startOutro);
@@ -74,6 +83,7 @@ const initialize = (mainWindow: BrowserWindow) => {
             };
           })
           .catch((err) => {
+            console.error(err);
             console.error('Error downloading file:', err.message);
             return d;
           })
@@ -101,7 +111,10 @@ const initialize = (mainWindow: BrowserWindow) => {
             error: err.message,
           }
         });
-      });
+      }).finally(() => {
+        isProcessing = false;
+      }
+    );
   });
 };
 

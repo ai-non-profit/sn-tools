@@ -9,17 +9,21 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import CardActions from '@mui/material/CardActions';
-import { FormControl, MenuItem, Select } from '@mui/material';
+import { MenuItem, Select } from '@mui/material';
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<Settings>({} as any);
+  const [accounts, setAccounts] = useState<string[]>([]);
 
   useEffect(() => {
     (async () => {
       const settings = await window.electronAPI.invokeMain<null, Settings>(IPCEvent.GET_SETTINGS);
+      const accounts = await window.electronAPI.invokeMain<any, string[]>(IPCEvent.GET_STORE, { key: 'ytToken' });
+      console.log(accounts);
       setSettings(settings);
       setLoading(false);
+      setAccounts(Object.keys(accounts) || []);
     })();
   }, []);
 
@@ -37,6 +41,20 @@ export default function SettingsPage() {
     }
   };
 
+  const clearYoutubeAccount = async () => {
+    await window.electronAPI.invokeMain(IPCEvent.SET_STORE, { key: 'ytToken', value: {} });
+  };
+
+  const loginToYouTube = async () => {
+    const result: any = await window.electronAPI.invokeMain<null, string>(IPCEvent.LOGIN_YOUTUBE);
+    if (result.error) {
+      console.error('YouTube login failed:', result.message);
+      alert(`YouTube login failed: ${result.message}`);
+      return;
+    }
+    alert('YouTube login successful! You can now upload videos.');
+  };
+
   const handleChange = (key: string, value: any) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
@@ -47,8 +65,10 @@ export default function SettingsPage() {
     // Save to electron-store or wherever
     try {
       await window.electronAPI.invokeMain<Settings, string>(IPCEvent.SAVE_SETTINGS, settings);
+      alert('Settings saved successfully!');
     } catch (error) {
       console.log('Error saving settings:', error);
+      alert('Failed to save settings. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -165,6 +185,38 @@ export default function SettingsPage() {
               placeholder="Paste your TikTok cookies here"
             />
           </Box>
+
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Select
+              value={settings.defaultAccount || ''}
+              onChange={(e: any) => handleChange('defaultAccount', e.target.value)}
+              displayEmpty
+              size='small'
+              sx={{ minWidth: 200, marginTop: '16px' }}
+            >
+              <MenuItem value="" disabled>Select YouTube Account</MenuItem>
+              {accounts?.map((account) => (
+                <MenuItem key={account} value={account}>
+                  {account}
+                </MenuItem>
+              ))}
+            </Select>
+            <Button
+              onClick={loginToYouTube}
+              variant="outlined"
+              sx={{ height: 'fit-content', mt: 2 }}
+            >
+              Login to YouTube
+            </Button>
+            <Button
+              onClick={clearYoutubeAccount}
+              variant="outlined"
+              sx={{ height: 'fit-content', mt: 2 }}
+            >
+              Clear
+            </Button>
+          </Box>
+
 
         </CardContent>
         <CardActions sx={{ justifyContent: 'flex-end', pt: 2 }}>

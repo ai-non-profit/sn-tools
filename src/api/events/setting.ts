@@ -4,8 +4,17 @@ import { getSettings, saveSettings } from "../dal/setting";
 import { Settings } from "../dto/event";
 import path from "path";
 import { formatVideo } from "../service/video.service";
+import store from "../dal/store";
 
 const initialize = (mainWindow: BrowserWindow) => {
+  ipcMain.handle(IPCEvent.SET_STORE, async (_, { key, value }) => {
+    console.log("Set store key:", key);
+    return store.set(key, value);
+  });
+  ipcMain.handle(IPCEvent.GET_STORE, async (_, { key }) => {
+    console.log("Get store key:", key);
+    return store.get(key);
+  });
   ipcMain.handle(IPCEvent.GET_SETTINGS, async (_) => {
     console.log("Get settings");
     return getSettings();

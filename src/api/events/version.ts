@@ -52,7 +52,8 @@ export async function getTranscript(creatorId: string, videoId: string, musicURL
   });
 
   if (!musicRes.ok) {
-    throw new Error(`Failed to fetch music: ${musicRes.statusText}`);
+    console.error('Failed to fetch music:', musicRes.statusText);
+    return [];
   }
 
   const musicBlob = await musicRes.blob();
@@ -67,16 +68,14 @@ export async function getTranscript(creatorId: string, videoId: string, musicURL
   });
 
   try {
-    return await res.json();
+    return (await res.json())?.data;
   } catch (e) {
-    console.log(res);
-    throw e;
+    console.error(res);
+    return [];
   }
 }
 
 export async function searchTiktok(search: string, cookies: string, { maxDownloads, startDate, endDate }: Options): Promise<any> {
-  console.log(startDate);
-  console.log(endDate);
   const options = {
     method: 'GET',
     headers: {

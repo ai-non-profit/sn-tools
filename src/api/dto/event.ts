@@ -39,6 +39,7 @@ export type Settings = {
   maxDownloads: number;
   offsetDateAgo?: number; // in days
   offsetDateType?: string;
+  defaultAccount?: string; // default account to use for uploading
 }
 
 export interface TikTokVideo {

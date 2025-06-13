@@ -11,6 +11,7 @@ import initVersion from './api/events/version';
 import http2 from 'node:http2';
 import { PassThrough } from 'node:stream';
 import { getSettings } from './api/dal/setting';
+import initYoutube from './api/events/youtube';
 
 fixPath();
 
@@ -88,6 +89,7 @@ const createWindow = () => {
 
   initSelectFolder(mainWindow);
   initVersion(mainWindow);
+  initYoutube(mainWindow);
 
   mainWindow.webContents.on("did-finish-load", () => {
     initDownload(mainWindow);
