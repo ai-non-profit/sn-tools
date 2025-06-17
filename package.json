@@ -1,7 +1,7 @@
 {
   "name": "sn-tools",
   "productName": "sn-tools",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "Crawl, download and manage your tiktok videos",
   "main": ".vite/build/main.js",
   "scripts": {
@@ -33,8 +33,12 @@
   },
   "keywords": [],
   "author": {
-    "name": "doanthai.pc",
+    "name": "kaitana",
     "email": "doanquocthai.it@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ai-non-profit/sn-tools.git"
   },
   "license": "MIT",
   "devDependencies": {
