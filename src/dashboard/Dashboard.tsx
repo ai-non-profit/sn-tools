@@ -15,16 +15,6 @@ import TikTokStylePage from './pages/TikTokStylePage';
 
 
 export default function Dashboard(props: { disableCustomTheme?: boolean }) {
-  React.useEffect(() => {
-    window.electronAPI.onUpdateAvailable(() => {
-      alert("Update available!");
-    });
-
-    window.electronAPI.onUpdateDownloaded(() => {
-      alert("Update downloaded! The app will restart to apply the update.");
-    });
-  }, []);
-
   return (
     <HashRouter>
       <AppTheme {...props} >

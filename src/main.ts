@@ -11,52 +11,17 @@ import initVersion from './api/events/version';
 import { PassThrough } from 'node:stream';
 import { getSettings } from './api/dal/setting';
 import initYoutube from './api/events/youtube';
-import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
+import { updateElectronApp } from 'update-electron-app';
+
+updateElectronApp({
+  logger: log,
+}); // additional configuration options available
 
 fixPath();
 
 let mainWindow: BrowserWindow;
 log.transports.file.level = 'info';
-autoUpdater.logger = log;
-
-autoUpdater.setFeedURL({
-  provider: 'github',
-  owner: 'ai-non-profit',
-  repo: 'sn-tools',
-  private: true,
-  token: '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'
-});
-
-// OPTIONAL: auto install update on next app quit
-autoUpdater.autoInstallOnAppQuit = true;
-
-// OPTIONAL: auto download without prompt
-autoUpdater.autoDownload = true;
-
-
-autoUpdater.on('checking-for-update', () => {
-  log.info('Checking for update...');
-});
-autoUpdater.on('update-available', (info) => {
-  log.info('Update available.', info);
-  mainWindow.webContents.send('update_available');
-});
-autoUpdater.on('update-not-available', (info) => {
-  log.info('Update not available.', info);
-});
-autoUpdater.on('error', (err) => {
-  log.error('Update error:', err);
-});
-autoUpdater.on('download-progress', (progressObj) => {
-  log.info(`Download speed: ${progressObj.bytesPerSecond}`);
-});
-autoUpdater.on('update-downloaded', () => {
-  mainWindow.webContents.send('update_downloaded');
-  log.info('Update downloaded, will quit and install');
-  autoUpdater.quitAndInstall();
-});
-
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -79,8 +44,6 @@ const createWindow = () => {
       webSecurity: false,
     },
   });
-
-  autoUpdater.checkForUpdatesAndNotify();
 
   // Register custom protocol
   protocol.registerStreamProtocol('stream', (request, callback) => {

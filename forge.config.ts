@@ -34,8 +34,10 @@ const config: ForgeConfig = {
           owner: 'ai-non-profit',
           name: 'sn-tools'
         },
+        generateReleaseNotes: true,
         prerelease: false,
-        draft: true,
+        draft: false,
+        authToken: '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'
       }
     }
   ],
