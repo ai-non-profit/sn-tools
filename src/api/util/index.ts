@@ -1,10 +1,22 @@
 import path from 'path';
 import isDev from 'electron-is-dev';
 
-export const ffmpegPath =
+const devBinPath = {
+  win32: path.join(__dirname, '..', '..', 'bin', 'win', 'ffmpeg.exe'),
+  darwin: path.join(__dirname, '..', '..', 'bin', 'mac', 'ffmpeg'),
+  linux: path.join(__dirname, '..', '..', 'bin', 'linux', 'ffmpeg')
+};
+
+const prodBinPath = {
+  win32: path.join(process.resourcesPath, 'bin', 'win', 'ffmpeg.exe'),
+  darwin: path.join(process.resourcesPath, 'bin', 'mac', 'ffmpeg'),
+  linux: path.join(process.resourcesPath, 'bin', 'linux', 'ffmpeg')
+};
+
+export const ffmpegPath: string =
   isDev
-    ? path.join(__dirname, '..', '..', 'bin', process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg')
-    : path.join(process.resourcesPath, 'bin', process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg');
+    ? devBinPath[process.platform as keyof typeof devBinPath] as string
+    : prodBinPath[process.platform as keyof typeof prodBinPath] as string;
 
 export const getYoutubeID = (url: string) => {
   const match = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);

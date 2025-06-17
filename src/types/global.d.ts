@@ -10,6 +10,8 @@ declare global {
       sendToMain: <T = any>(channel: string, data: T = {}) => void;
       invokeMain: <T = any, R = any>(channel: string, data?: T) => Promise<R>;
       onMessageFromMain: <T = any>(callback: (data: CrossEvent<T>) => any) => void;
+      onUpdateAvailable: (callback: () => void) => void;
+      onUpdateDownloaded: (callback: () => void) => void;
     };
   }
 }

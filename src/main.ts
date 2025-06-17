@@ -16,6 +16,7 @@ import log from 'electron-log';
 
 fixPath();
 
+let mainWindow: BrowserWindow;
 log.transports.file.level = 'info';
 autoUpdater.logger = log;
 
@@ -27,11 +28,19 @@ autoUpdater.setFeedURL({
   token: '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'
 });
 
+// OPTIONAL: auto install update on next app quit
+autoUpdater.autoInstallOnAppQuit = true;
+
+// OPTIONAL: auto download without prompt
+autoUpdater.autoDownload = true;
+
+
 autoUpdater.on('checking-for-update', () => {
   log.info('Checking for update...');
 });
 autoUpdater.on('update-available', (info) => {
   log.info('Update available.', info);
+  mainWindow.webContents.send('update_available');
 });
 autoUpdater.on('update-not-available', (info) => {
   log.info('Update not available.', info);
@@ -43,6 +52,7 @@ autoUpdater.on('download-progress', (progressObj) => {
   log.info(`Download speed: ${progressObj.bytesPerSecond}`);
 });
 autoUpdater.on('update-downloaded', () => {
+  mainWindow.webContents.send('update_downloaded');
   log.info('Update downloaded, will quit and install');
   autoUpdater.quitAndInstall();
 });
@@ -58,7 +68,7 @@ app.commandLine.appendSwitch('js-flags', '--max-old-space-size=1024');
 
 const createWindow = () => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1024,
     height: 768,
     webPreferences: {
