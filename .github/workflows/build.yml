@@ -1,0 +1,72 @@
+name: Build Electron App
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on new tags that start with 'v'
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.11.0
+          cache: 'yarn'
+
+      - name: Enable Corepack (optional)
+        run: corepack enable    
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build the Electron app for Linux
+        run: yarn run publish
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.11.0
+          cache: 'yarn'
+
+      - name: Enable Corepack (optional)
+        run: corepack enable    
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build & Publish Electron App (Windows)
+        env:
+          CERTIFICATE_PASSWORD: 16052025
+        run: yarn run publish --platform=win32
+
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.11.0
+          cache: 'yarn'
+
+      - name: Enable Corepack (optional)
+        run: corepack enable    
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Publish Electron App (macOS)
+        run: yarn run publish
