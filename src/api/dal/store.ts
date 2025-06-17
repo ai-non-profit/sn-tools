@@ -15,7 +15,8 @@ const store: Store = new Store<StoreType>({
       maxDownloads: 100,
       maxConcurrentDownloads: 3,
       offsetDateAgo: 5,
-      offsetDateType: 'months'
+      offsetDateType: 'months',
+      defaultOutro: 5
     }
   }
 });

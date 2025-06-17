@@ -12,7 +12,8 @@ import Button from '@mui/material/Button';
 import { formatViewCount } from 'src/util/common';
 import { TikTokVideo } from 'src/api/dto/event';
 
-function VideoBox({ url, videoRef }: { url: string; videoRef: React.RefObject<HTMLVideoElement> }) {
+function VideoBox({id, url, videoRef, divRef}: { divRef?: HTMLVideoElement, id: string, url: string; videoRef: React.RefObject<HTMLVideoElement> }) {
+  const isYoutube = url.includes('youtube.com');
   const encodeUrl = btoa(url);
   return (
     <Box
@@ -27,27 +28,40 @@ function VideoBox({ url, videoRef }: { url: string; videoRef: React.RefObject<HT
         overflow: 'hidden',
       }}
     >
-      <video
-        ref={videoRef}
-        key={encodeUrl}
-        controls
-        autoPlay
-        style={{
-          maxHeight: '660px',
-          objectFit: 'contain',
-        }}
-      >
-        <source
-          src={url.startsWith('http') ? `stream://video/${encodeUrl}` : `file://${url}`}
-          type="video/mp4"
-        />
-        Your browser does not support the video tag.
-      </video>
+      {isYoutube &&
+          <iframe
+              width="560"
+              height={divRef?.current?.offsetHeight || 660}
+              src={`https://www.youtube.com/embed/${id}`}
+              title="YouTube video player"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen>
+          </iframe>
+      }
+      {!isYoutube &&
+          <video
+              ref={videoRef}
+              key={encodeUrl}
+              controls
+              autoPlay
+              style={{
+                maxHeight: '660px',
+                objectFit: 'contain',
+              }}
+          >
+              <source
+                  src={url.startsWith('http') ? `stream://video/${encodeUrl}` : `file://${url}`}
+                  type="video/mp4"
+              />
+              Your browser does not support the video tag.
+          </video>
+      }
     </Box>
   );
 }
 
-function formatTimeRange({ start_time, end_time }: { start_time: number; end_time: number }): string {
+function formatTimeRange({start_time, end_time}: { start_time: number; end_time: number }): string {
   const format = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
     const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
@@ -60,7 +74,7 @@ function formatTimeRange({ start_time, end_time }: { start_time: number; end_tim
 
 const TikTokStylePage = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-
+  const divRef = useRef<HTMLDivElement>(null);
   const video: TikTokVideo = useVideoStore(state => state.videos[state.index]);
   const index = useVideoStore(state => state.index);
   const setIndex = useVideoStore(state => state.setIndex);
@@ -72,10 +86,10 @@ const TikTokStylePage = () => {
     if (video?.transcript?.length) return;
     window.electronAPI.invokeMain<TranscriptRequest, any>(
       IPCEvent.GET_TRANSCRIPT,
-      { videoId: video.id, musicURL: video.music.playUrl, creatorId: video.author.id }
+      {videoId: video.id, musicURL: video?.music?.playUrl, creatorId: video?.author?.id}
     ).then(res => {
       if (!res || !res.success) return;
-      changeVideo(index, { transcript: res.data });
+      changeVideo(index, {transcript: res.data});
     });
   }, [video]);
 
@@ -89,8 +103,8 @@ const TikTokStylePage = () => {
   const onOutroTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(event.target.value);
     if (isNaN(value) || value < 0) return;
-    changeVideo(index, { startOutro: value });
-  }
+    changeVideo(index, {startOutro: value});
+  };
 
   const setOutroTime = () => {
     if (!videoRef.current) return;
@@ -118,9 +132,9 @@ const TikTokStylePage = () => {
   console.log(video);
 
   return (
-    <Box sx={{ display: 'flex', height: '100%', backgroundColor: '#000' }}>
+    <Box sx={{display: 'flex', height: '100%', backgroundColor: '#000'}}>
       {/* Left side: Video + UI */}
-      <Box sx={{
+      <Box ref={divRef} sx={{
         flex: 1,
         display: 'flex',
         justifyContent: 'center',
@@ -128,29 +142,29 @@ const TikTokStylePage = () => {
         position: 'relative',
         backgroundColor: '#242C33'
       }}>
-        <Box sx={{ position: 'absolute', top: '50%', right: 10, zIndex: 1 }}>
-          <IconButton sx={{ color: 'white', backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
-            onClick={() => changeIndex(index - 1)}>
-            <ArrowDropUpIcon />
+        <Box sx={{position: 'absolute', top: '50%', right: 10, zIndex: 1}}>
+          <IconButton sx={{color: 'white', backgroundColor: 'rgba(255, 255, 255, 0.1)'}}
+                      onClick={() => changeIndex(index - 1)}>
+            <ArrowDropUpIcon/>
           </IconButton>
         </Box>
-        <Box sx={{ position: 'absolute', top: '60%', right: 10, zIndex: 1 }}>
-          <IconButton sx={{ color: 'white', backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
-            onClick={() => changeIndex(index + 1)}>
-            <ArrowDropDownIcon />
+        <Box sx={{position: 'absolute', top: '60%', right: 10, zIndex: 1}}>
+          <IconButton sx={{color: 'white', backgroundColor: 'rgba(255, 255, 255, 0.1)'}}
+                      onClick={() => changeIndex(index + 1)}>
+            <ArrowDropDownIcon/>
           </IconButton>
         </Box>
-        <VideoBox url={url} videoRef={videoRef} />
+        <VideoBox id={video.id} url={url} videoRef={videoRef} divRef={divRef}/>
       </Box>
 
       {/* Right side: Metadata */}
-      <Box sx={{ width: 400, color: 'white', padding: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
+      <Box sx={{width: 400, color: 'white', padding: 2}}>
+        <Box sx={{display: 'flex', alignItems: 'center', marginBottom: 2}}>
           <Avatar alt="emoji_battery_app68"
-            src="https://p9-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/8f00348ad4c5aa957d99589893600e62~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=2215cd8f&x-expires=1748232000&x-signature=snpeDM72y%2FaOvxVLPoCoeEbgUm8%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=b59d6b55&idc=my2" />
-          <Box sx={{ marginLeft: 2 }}>
-            <Typography variant="subtitle1">{video.author.uniqueId}</Typography>
-            <Typography variant="body2">{video.author.signature}</Typography>
+                  src="https://p9-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/8f00348ad4c5aa957d99589893600e62~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=2215cd8f&x-expires=1748232000&x-signature=snpeDM72y%2FaOvxVLPoCoeEbgUm8%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=b59d6b55&idc=my2"/>
+          <Box sx={{marginLeft: 2}}>
+            <Typography variant="subtitle1">{video?.author?.uniqueId}</Typography>
+            <Typography variant="body2">{video?.author?.signature}</Typography>
           </Box>
         </Box>
 
@@ -158,40 +172,40 @@ const TikTokStylePage = () => {
           {video?.desc || 'No description available.'}
         </Typography>
 
-        <Box sx={{ display: 'flex', gap: 1, marginBottom: 2, '& button': { fontSize: 15 } }}>
-          <IconButton><FavoriteBorderIcon />{formatViewCount(video.stats.diggCount)}</IconButton>
-          <IconButton><ChatBubbleOutlineIcon />{formatViewCount(video.stats.commentCount)}</IconButton>
-          <IconButton><ShareIcon />{formatViewCount(video.stats.shareCount)}</IconButton>
+        <Box sx={{display: 'flex', gap: 1, marginBottom: 2, '& button': {fontSize: 15}}}>
+          <IconButton><FavoriteBorderIcon/>{formatViewCount(video.stats.diggCount)}</IconButton>
+          <IconButton><ChatBubbleOutlineIcon/>{formatViewCount(video.stats.commentCount)}</IconButton>
+          <IconButton><ShareIcon/>{formatViewCount(video.stats.shareCount)}</IconButton>
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 1, marginBottom: 2, '& button': { fontSize: 15 } }}>
+        <Box sx={{display: 'flex', gap: 1, marginBottom: 2, '& button': {fontSize: 15}}}>
           <TextField
-            type='number'
+            type="number"
             label="OUTRO Time (seconds)"
             value={video.startOutro || 0}
-            size='small'
+            size="small"
             margin="normal"
             onChange={onOutroTimeChange}
             slotProps={{
-              inputLabel: { shrink: true },
+              inputLabel: {shrink: true},
             }}
           />
-          <Button variant='contained' onClick={setOutroTime} size='small' >Set Current Frame</Button>
+          <Button variant="contained" onClick={setOutroTime} size="small">Set Current Frame</Button>
         </Box>
 
         {video.localPath?.outro && !isOutro && (
-          <Box sx={{ display: 'flex', gap: 1, marginBottom: 2, '& button': { fontSize: 15 } }}>
-            <Button variant='contained' onClick={viewOutro} >View Outro</Button>
+          <Box sx={{display: 'flex', gap: 1, marginBottom: 2, '& button': {fontSize: 15}}}>
+            <Button variant="contained" onClick={viewOutro}>View Outro</Button>
           </Box>
         )}
         {isOutro && (
-          <Box sx={{ display: 'flex', gap: 1, marginBottom: 2, '& button': { fontSize: 15 } }}>
-            <Button variant='contained' onClick={viewOriginal} >View Origin</Button>
+          <Box sx={{display: 'flex', gap: 1, marginBottom: 2, '& button': {fontSize: 15}}}>
+            <Button variant="contained" onClick={viewOriginal}>View Origin</Button>
           </Box>
         )}
         {video.localPath?.edited && (
-          <Box sx={{ display: 'flex', gap: 1, marginBottom: 2, '& button': { fontSize: 15 } }}>
-            <Button variant='contained' onClick={viewEdited} >View Edit</Button>
+          <Box sx={{display: 'flex', gap: 1, marginBottom: 2, '& button': {fontSize: 15}}}>
+            <Button variant="contained" onClick={viewEdited}>View Edit</Button>
           </Box>
         )}
 
@@ -201,7 +215,7 @@ const TikTokStylePage = () => {
           overflowY: 'auto'
         }}>
           {video?.transcript?.map((item: any, index: number) => (
-            <Box key={index} sx={{ backgroundColor: '#2C2F33', padding: 1, borderRadius: 1 }}>
+            <Box key={index} sx={{backgroundColor: '#2C2F33', padding: 1, borderRadius: 1}}>
               <Typography variant="body2">{formatTimeRange(item)}: {item.text} </Typography>
             </Box>
           ))}

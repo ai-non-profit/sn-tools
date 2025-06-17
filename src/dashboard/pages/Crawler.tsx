@@ -5,7 +5,6 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { IPCEvent } from 'src/util/constant';
 import { formatViewCount } from 'src/util/common';
 import { EditOptions, Settings, TikTokVideo, UploadVideoOptions } from 'src/api/dto/event';
-import AlertDialog, { AlertProps } from 'src/dashboard/components/AlertDialog';
 import type { GridColDef } from '@mui/x-data-grid/models/colDef/gridColDef';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -52,7 +51,7 @@ const columns: GridColDef[] = [
     renderCell: () => <Button variant="contained" size="small">View Online</Button>
   },
   {
-    flex: 0.125,
+    flex: 0.125,/**/
     field: 'desc',
     headerName: 'Description',
     minWidth: 100,
@@ -127,19 +126,20 @@ export default function Crawler() {
   const handleSearch = async () => {
     setIsLoading(true);
     const options = {
-      startDate: filter.startDate ? +filter.startDate.startOf('day').unix() : null,
-      endDate: filter.endDate ? +filter.endDate.startOf('day').unix() : null,
-    };
-    window.electronAPI.invokeMain<any, any>(IPCEvent.CRAWLER_VIDEO, { search, options })
-      .then(({ data, success }) => {
-        if (success === false) {
-          alert(data.message || 'Failed to fetch videos');
+        startDate: filter.startDate ? +filter.startDate.startOf('day').unix() : null,
+        endDate: filter.endDate ? +filter.endDate.startOf('day').unix() : null,
+      };
+      window.electronAPI.invokeMain<any, any>(IPCEvent.CRAWLER_VIDEO, { search, type, options })
+        .then(({ data, success }) => {
+          if (success === false) {
+            alert(data.message || 'Failed to fetch videos');
+            setIsLoading(false);
+            return;
+          }
+          console.log(data);
+          setVideos(data);
           setIsLoading(false);
-          return;
-        }
-        setVideos(data);
-        setIsLoading(false);
-      });
+        });
   };
 
   const handleMoreOptions = async () => {
@@ -275,10 +275,13 @@ export default function Crawler() {
               >
                 <MenuItem value="search">Search Box</MenuItem>
                 <MenuItem value="account">Account</MenuItem>
+                <MenuItem value="youtube">Youtube</MenuItem>
               </Select>
             </FormControl>
             <FormControl variant="outlined" fullWidth>
               <OutlinedInput
+                multiline
+                rows={4}
                 size="medium"
                 value={search}
                 id="search"
@@ -292,6 +295,18 @@ export default function Crawler() {
                 }
                 inputProps={{
                   'aria-label': 'search',
+                  style: {
+                    overflow: 'hidden',      // Prevent overflow
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'pre-wrap',  // Allow multiline
+                    resize: 'none',
+                  },
+                  multiline: true,           // Enable multiline
+                  rows: 4,                   // Default rows
+                  maxRows: 4                 // Optional: limit max rows
+                }}
+                sx={{
+                  overflow: 'hidden',        // Prevent overflow on the input root
                 }}
               />
             </FormControl>

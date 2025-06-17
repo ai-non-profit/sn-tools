@@ -42,7 +42,7 @@ const initialize = (mainWindow: BrowserWindow) => {
       // eslint-disable-next-line prefer-const
       let { id, video, music, author, transcript, startOutro } = d;
       const { duration, format } = video;
-      const url = video.playAddr || video.downloadAddr;
+      const url = video.downloadAddr || video.playAddr;
       if (!url) return;
       const filename = id + '.' + format;
       const dest = path.join(downloadDir, filename);
@@ -50,13 +50,12 @@ const initialize = (mainWindow: BrowserWindow) => {
         downloadVideo(dest, url, settings.tiktokCookies)
           .then(async (pth) => {
             log.info('File downloaded to:', pth);
-            if (!startOutro || startOutro <= 0) {
+            if (!url.includes('googlevideo.com') && (!startOutro || startOutro <= 0)) {
               // if not manually set, calculate startOutro based on duration
               if (!transcript || transcript.length === 0) {
                 const rs = await getTranscript(author.uniqueId, id, music.playUrl, settings.tiktokCookies);
                 transcript = rs.data;
               }
-              log.info(transcript);
               if (transcript?.length) {
                 const lastTranscript = transcript[transcript.length - 1];
                 startOutro = lastTranscript && lastTranscript.end_time < duration * 1000
@@ -64,7 +63,7 @@ const initialize = (mainWindow: BrowserWindow) => {
                   : lastTranscript.start_time / 1000;
               }
             }
-            startOutro = startOutro || duration - 5; // Default to 5 seconds before the end if not specified
+            startOutro = startOutro || duration - settings.defaultOutro;
             const outroPath = await cutVideo(pth, outroDir, startOutro);
             const rawPath = await cutVideo(pth, rawDir, 0, duration - startOutro);
             log.info('Outro cutted to:', outroPath);
@@ -115,7 +114,7 @@ const initialize = (mainWindow: BrowserWindow) => {
       }).finally(() => {
         isProcessing = false;
       }
-    );
+      );
   });
 };
 

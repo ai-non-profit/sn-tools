@@ -129,6 +129,17 @@ export default function SettingsPage() {
 
           <Box sx={{ display: 'flex', gap: 1 }}>
             <TextField
+              label="Default Outro Duration (seconds)"
+              value={settings.defaultOutro || 5}
+              fullWidth
+              onChange={(e) => handleChange('defaultOutro', +e.target.value)}
+              size='small'
+              margin="normal"
+            />
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <TextField
               label="Max Downloads Number"
               value={settings.maxDownloads || 0}
               fullWidth

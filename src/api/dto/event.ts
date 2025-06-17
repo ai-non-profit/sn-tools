@@ -1,3 +1,5 @@
+import { YTResponse } from "./youtube";
+
 export type CrossEvent<T = any> = {
   event: string;
   data: T;
@@ -40,6 +42,7 @@ export type Settings = {
   offsetDateAgo?: number; // in days
   offsetDateType?: string;
   defaultAccount?: string; // default account to use for uploading
+  defaultOutro?: number;
 }
 
 export interface TikTokVideo {
@@ -51,6 +54,7 @@ export interface TikTokVideo {
   music: Music
   transcript?: Transcript[],
   startOutro: number;
+  url?: string;
   localPath?: {
     original: string;
     raw?: string;
@@ -58,7 +62,10 @@ export interface TikTokVideo {
     edited?: string;
   }
   [key: string]: any; // for future use, like editing options
+  ytInfo?: YTResponse; // YouTube info if available
 }
+
+export type TikTokVideoOptional = Partial<TikTokVideo>;
 
 export interface Video {
   id: string

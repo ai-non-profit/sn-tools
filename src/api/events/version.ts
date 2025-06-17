@@ -3,6 +3,11 @@ import { IPCEvent } from 'src/util/constant';
 import { getSettings } from '../dal/setting';
 import { TranscriptRequest } from 'src/util/dto';
 import log from 'electron-log';
+import { getYoutubeID, parseISODuration } from 'src/api/util';
+import { getInfoYT } from '../service/video.service';
+import { AdaptiveFormat, YTResponse } from '../dto/youtube';
+import { i } from 'vite/dist/node/types.d-aGj9QkWt';
+import { auth } from 'googleapis/build/src/apis/abusiveexperiencereport';
 
 interface Options {
   startDate: number;
@@ -76,7 +81,11 @@ export async function getTranscript(creatorId: string, videoId: string, musicURL
   }
 }
 
-export async function searchTiktok(search: string, cookies: string, { maxDownloads, startDate, endDate }: Options): Promise<any> {
+export async function searchTiktok(search: string, cookies: string, {
+  maxDownloads,
+  startDate,
+  endDate
+}: Options): Promise<any> {
   const options = {
     method: 'GET',
     headers: {
@@ -143,7 +152,7 @@ export async function searchTiktok(search: string, cookies: string, { maxDownloa
       params.set('search_id', json?.extra?.logid || '');
     }
     options.headers.Cookie = cookies + '; ' + msToken;
-    for (const { type, item } of json?.data || []) {
+    for (const {type, item} of json?.data || []) {
       if (type !== 1 || item.createTime <= startDate || item.createTime >= endDate) continue;
       result.push(item);
       if (result.length >= maxDownloads) {
@@ -151,7 +160,7 @@ export async function searchTiktok(search: string, cookies: string, { maxDownloa
         break main;
       }
     }
-  } while (json?.has_more === 1)
+  } while (json?.has_more === 1);
   console.countReset('Page');
   return {
     success: true,
@@ -164,28 +173,84 @@ const initialize = (_: BrowserWindow) => {
     return app.getVersion();
   });
 
-  ipcMain.handle(IPCEvent.GET_TRANSCRIPT, async (_, { creatorId, videoId, musicURL }: TranscriptRequest) => {
+  ipcMain.handle(IPCEvent.GET_TRANSCRIPT, async (_, {creatorId, videoId, musicURL}: TranscriptRequest) => {
     const settings = getSettings();
     const cookies = settings.tiktokCookies;
     return getTranscript(creatorId, videoId, musicURL, cookies);
   });
 
-  ipcMain.handle(IPCEvent.CRAWLER_VIDEO, async (_, { search, type, options }) => {
-    const settings = getSettings();
-    const cookies = settings.tiktokCookies;
-    const maxDownload = settings.maxDownloads || 100;
-    try {
-      return searchTiktok(search, cookies, { ...options, maxDownloads: maxDownload });
-    } catch (error) {
-      log.error('Error fetching TikTok videos:', error);
+  ipcMain.handle(IPCEvent.CRAWLER_VIDEO, async (_, {search, type, options}) => {
+    if (type === 'search') {
+      const settings = getSettings();
+      const cookies = settings.tiktokCookies;
+      const maxDownload = settings.maxDownloads || 100;
+      try {
+        return searchTiktok(search, cookies, {...options, maxDownloads: maxDownload});
+      } catch (error) {
+        log.error('Error fetching TikTok videos:', error);
+        return {
+          success: false,
+          message: 'Failed to fetch TikTok videos',
+          error: error.message,
+        };
+      }
+    } else if (type === 'youtube') {
+      const urls = search.split('\n').map((url: string) => url.trim());
+      log.info('YouTube URLs:', urls);
+      const ids = urls.map(getYoutubeID);
+      const res = await Promise.all(ids.map(getInfoYT));
+      const result = res.map((item: YTResponse) => ({
+        id: item.videoDetails.videoId,
+        title: item.videoDetails.title,
+        desc: item.videoDetails.shortDescription,
+        thumbnails: item.videoDetails.thumbnail.thumbnails[item.videoDetails.thumbnail.thumbnails.length - 1].url,
+        duration: +item.videoDetails.lengthSeconds,
+        url: urls.find((url: string) => url.includes(item.videoDetails.videoId)) || `https://www.youtube.com/watch?v=${item.videoDetails.videoId}`,
+        stats: {
+          playCount: +item.videoDetails.viewCount,
+          diggCount: 0,
+          dislikeCount: 0,
+          commentCount: 0
+        },
+        video: {
+          duration: +item.videoDetails.lengthSeconds,
+          cover: item.videoDetails.thumbnail.thumbnails[item.videoDetails.thumbnail.thumbnails.length - 1].url,
+          playAddr: `https://www.youtube.com/watch?v=${item.videoDetails.videoId}`,
+          downloadAddr: item.streamingData?.adaptiveFormats?.find((format: AdaptiveFormat) => format.quality === 'hd720')?.url || '',
+          format: 'mp4',
+        },
+        author: {
+          id: item.videoDetails.channelId,
+          uniqueId: item.videoDetails.channelId,
+          nickname: item.videoDetails.author,
+},
+        ytInfo: item,
+      }));
+      // Handle YouTube video fetching here
       return {
-        success: false,
-        message: 'Failed to fetch TikTok videos',
-        error: error.message,
+        success: true,
+        data: result
       };
     }
   });
 };
+
+async function getInfo(ids: string) {
+  const params = new URLSearchParams({
+    part: 'snippet,contentDetails,statistics',
+    id: ids,
+    key: 'AIzaSyCV2g9BR0ufhQHdj-yxuWFDSyEEQG8a-NI'
+  });
+  const url = 'https://www.googleapis.com/youtube/v3/videos?' + params.toString();
+  const options = {method: 'GET'};
+
+  try {
+    const response = await fetch(url, options);
+    return await response.json();
+  } catch (error) {
+    return {};
+  }
+}
 
 const initVersion = initialize;
 
