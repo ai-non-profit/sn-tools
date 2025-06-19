@@ -1,17 +1,12 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import { IPCEvent } from 'src/util/constant';
 import { formatViewCount } from 'src/util/common';
 import { EditOptions, Settings, TikTokVideo, UploadVideoOptions } from 'src/api/dto/event';
 import type { GridColDef } from '@mui/x-data-grid/models/colDef/gridColDef';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import FormControl from '@mui/material/FormControl';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputAdornment from '@mui/material/InputAdornment';
 import CardActions from '@mui/material/CardActions';
 import LinearProgress from '@mui/material/LinearProgress';
 import { DataGrid } from '@mui/x-data-grid/DataGrid';
@@ -19,11 +14,10 @@ import { useGridApiRef } from '@mui/x-data-grid';
 import { Dialog, DialogContent, IconButton } from '@mui/material';
 import TikTokStylePage from './TikTokStylePage';
 import { useVideoStore } from 'src/dashboard/stores/video';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
 import { CloseOutlined } from '@mui/icons-material';
 import FilterDialog from '../components/FilterDialog';
 import dayjs from 'dayjs';
+import { Search } from '../components/Search';
 
 
 const columns: GridColDef[] = [
@@ -92,8 +86,6 @@ const columns: GridColDef[] = [
 ];
 
 export default function Crawler() {
-  const [type, setType] = React.useState<string>('search');
-  const [search, setSearch] = React.useState<string>('');
   const { videos, setVideos, setIndex, setEditVideo } = useVideoStore();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [progress, setProgress] = React.useState<number>(0);
@@ -116,30 +108,23 @@ export default function Crawler() {
       View Online
     </Button>;
 
-  const handleKeyUp = (event: any) => {
-    if (isLoading) return;
-    if (event.key === 'Enter') {
-      handleSearch();
-    }
-  };
-
-  const handleSearch = async () => {
+  const handleSearch = async (search: string, type: string) => {
     setIsLoading(true);
     const options = {
-        startDate: filter.startDate ? +filter.startDate.startOf('day').unix() : null,
-        endDate: filter.endDate ? +filter.endDate.startOf('day').unix() : null,
-      };
-      window.electronAPI.invokeMain<any, any>(IPCEvent.CRAWLER_VIDEO, { search, type, options })
-        .then(({ data, success }) => {
-          if (success === false) {
-            alert(data.message || 'Failed to fetch videos');
-            setIsLoading(false);
-            return;
-          }
-          console.log(data);
-          setVideos(data);
+      startDate: filter.startDate ? +filter.startDate.startOf('day').unix() : null,
+      endDate: filter.endDate ? +filter.endDate.startOf('day').unix() : null,
+    };
+    window.electronAPI.invokeMain<any, any>(IPCEvent.CRAWLER_VIDEO, { search: search.trim(), type, options })
+      .then(({ data, success }) => {
+        if (success === false) {
+          alert(data.message || 'Failed to fetch videos');
           setIsLoading(false);
-        });
+          return;
+        }
+        console.log(data);
+        setVideos(data);
+        setIsLoading(false);
+      });
   };
 
   const handleMoreOptions = async () => {
@@ -257,71 +242,11 @@ export default function Crawler() {
         Crawler
       </Typography>
       <Card sx={{ minWidth: 275, marginBottom: 2 }}>
-        <CardContent>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant="outlined"
-              size="medium"
-              onClick={handleMoreOptions}
-              sx={{ whiteSpace: 'nowrap' }}
-            >
-              Options
-            </Button>
-            <FormControl variant="outlined" sx={{ width: 200 }}>
-              <Select
-                value={type}
-                onChange={(e: any) => setType(e.target.value)}
-                displayEmpty
-              >
-                <MenuItem value="search">Search Box</MenuItem>
-                <MenuItem value="account">Account</MenuItem>
-                <MenuItem value="youtube">Youtube</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl variant="outlined" fullWidth>
-              <OutlinedInput
-                multiline
-                rows={4}
-                size="medium"
-                value={search}
-                id="search"
-                placeholder="Search video on tiktok"
-                onKeyUp={handleKeyUp}
-                onChange={(e: any) => setSearch(e.target.value)}
-                startAdornment={
-                  <InputAdornment position="start" sx={{ color: 'text.primary' }}>
-                    <SearchRoundedIcon fontSize="small" />
-                  </InputAdornment>
-                }
-                inputProps={{
-                  'aria-label': 'search',
-                  style: {
-                    overflow: 'hidden',      // Prevent overflow
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'pre-wrap',  // Allow multiline
-                    resize: 'none',
-                  },
-                  multiline: true,           // Enable multiline
-                  rows: 4,                   // Default rows
-                  maxRows: 4                 // Optional: limit max rows
-                }}
-                sx={{
-                  overflow: 'hidden',        // Prevent overflow on the input root
-                }}
-              />
-            </FormControl>
-            <Button
-              variant="contained"
-              size="medium"
-              onClick={handleSearch}
-              sx={{ whiteSpace: 'nowrap' }}
-              disabled={isLoading}
-            >
-              Search
-            </Button>
-
-          </Box>
-        </CardContent>
+        <Search
+          handleMoreOptions={handleMoreOptions}
+          handleSearch={handleSearch}
+          isLoading={isLoading}
+        />
 
         <CardActions sx={{ pt: 1 }}>
           <Button variant="contained" size="small" onClick={handleDownloadAll}>
