@@ -1,7 +1,7 @@
 {
   "name": "sn-tools",
   "productName": "sn-tools",
-  "version": "1.7.3",
+  "version": "1.7.4",
   "description": "Crawl, download and manage your tiktok videos",
   "main": ".vite/build/main.js",
   "scripts": {
