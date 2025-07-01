@@ -42,7 +42,8 @@ const initialize = (mainWindow: BrowserWindow) => {
       // eslint-disable-next-line prefer-const
       let { id, video, music, author, transcript, startOutro } = d;
       const { duration, format } = video;
-      const url = video.downloadAddr || video.playAddr;
+      // prefer playAddr, fallback to downloadAddr, because downloadAddr may be have watermark
+      const url = video.playAddr?.includes('youtube') ? video.downloadAddr : (video.playAddr || video.downloadAddr);
       if (!url) return;
       const filename = id + '.' + format;
       const dest = path.join(downloadDir, filename);

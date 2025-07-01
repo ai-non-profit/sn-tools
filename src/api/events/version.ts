@@ -3,11 +3,9 @@ import { IPCEvent } from 'src/util/constant';
 import { getSettings } from '../dal/setting';
 import { TranscriptRequest } from 'src/util/dto';
 import log from 'electron-log';
-import { getYoutubeID, parseISODuration } from 'src/api/util';
+import { getYoutubeID } from 'src/api/util';
 import { getInfoYT } from '../service/video.service';
 import { AdaptiveFormat, YTResponse } from '../dto/youtube';
-import { i } from 'vite/dist/node/types.d-aGj9QkWt';
-import { auth } from 'googleapis/build/src/apis/abusiveexperiencereport';
 
 interface Options {
   startDate: number;
