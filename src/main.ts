@@ -1,4 +1,4 @@
-import { app, BrowserWindow, net, protocol } from 'electron';
+import { app, BrowserWindow, Menu, net, protocol, shell } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import initDownload from './api/events/download-video';
@@ -13,6 +13,8 @@ import { getSettings } from './api/dal/setting';
 import initYoutube from './api/events/youtube';
 import log from 'electron-log';
 import { updateElectronApp } from 'update-electron-app';
+
+log.initialize();
 
 updateElectronApp({
   logger: log,
@@ -31,6 +33,43 @@ if (started) {
 app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors');
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=1024');
 
+function createMenu() {
+  const currentMenu = Menu.getApplicationMenu();
+
+  // Create the new menu item (or submenu)
+  const newMenu = {
+    label: 'Tools',
+    submenu: [
+      {
+        label: 'Open Log',
+        click: () => {
+          const logFilePath = log.transports.file.getFile().path;
+          shell.showItemInFolder(logFilePath);
+        }
+      },
+      {
+        label: 'Open Download Folder',
+        click: () => {
+          const downloadDir = getSettings().downloadDir;
+          shell.showItemInFolder(downloadDir);
+        }
+      }
+    ]
+  };
+
+  // If a menu exists, append your new one
+  let menu;
+  if (currentMenu) {
+    const menuItems = currentMenu.items.concat(Menu.buildFromTemplate([newMenu]).items);
+    menu = Menu.buildFromTemplate(menuItems);
+  } else {
+    // No current menu (very rare), build a fresh one
+    menu = Menu.buildFromTemplate([newMenu]);
+  }
+
+  Menu.setApplicationMenu(menu);
+}
+
 const createWindow = () => {
   // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -44,6 +83,9 @@ const createWindow = () => {
       webSecurity: false,
     },
   });
+
+  // Create menu bar
+  createMenu();
 
   // Register custom protocol
   protocol.registerStreamProtocol('stream', (request, callback) => {

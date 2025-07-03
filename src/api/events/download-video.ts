@@ -65,8 +65,12 @@ const initialize = (mainWindow: BrowserWindow) => {
               }
             }
             startOutro = startOutro || duration - settings.defaultOutro;
-            const outroPath = await cutVideo(pth, outroDir, startOutro);
-            const rawPath = await cutVideo(pth, rawDir, 0, duration - startOutro);
+            let rawPath = pth;
+            let outroPath = pth;
+            if (!(startOutro < 0 || startOutro > duration || Number.isNaN(startOutro))) {
+              outroPath = await cutVideo(pth, outroDir, startOutro);
+              rawPath = await cutVideo(pth, rawDir, 0, duration - startOutro);
+            }
             log.info('Outro cutted to:', outroPath);
             return {
               ...d,

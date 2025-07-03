@@ -197,6 +197,7 @@ const initialize = (_: BrowserWindow) => {
       log.info('YouTube URLs:', urls);
       const ids = urls.map(getYoutubeID);
       const res = await Promise.all(ids.map(getInfoYT));
+      log.info('YouTube video information:', res);
       const result = res.map((item: YTResponse) => ({
         id: item.videoDetails.videoId,
         title: item.videoDetails.title,

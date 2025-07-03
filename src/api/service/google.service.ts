@@ -5,7 +5,7 @@ import http from 'http';
 export async function getAuthenticatedClient() {
   const CLIENT_ID = '297448176893-vmdvt5uvt2i8j5gh1iqab5v0bee7ht1h.apps.googleusercontent.com';
   const CLIENT_SECRET = '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';
-  const REDIRECT_URI = 'http://localhost:3000/oauth2callback';
+  const REDIRECT_URI = 'http://localhost:10002/oauth2callback';
   const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
   const authUrl = oauth2Client.generateAuthUrl({
@@ -24,7 +24,7 @@ export async function getAuthenticatedClient() {
     }
   });
 
-  await server.listen(3000);
+  await server.listen(10002);
   await open(authUrl);
   return new Promise((resolve) => server.on('close', () => resolve(oauth2Client)));
 }
