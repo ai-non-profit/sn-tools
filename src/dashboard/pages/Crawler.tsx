@@ -19,7 +19,6 @@ import FilterDialog from '../components/FilterDialog';
 import dayjs from 'dayjs';
 import { Search } from '../components/Search';
 
-
 const columns: GridColDef[] = [
   { flex: 0.05, field: 'item.id', headerName: 'ID', width: 90, valueGetter: (_val, row) => row.id },
   {

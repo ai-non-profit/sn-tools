@@ -2,7 +2,6 @@ import { app, BrowserWindow, Menu, net, protocol, shell } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import initDownload from './api/events/download-video';
-import initLoginGoogle from './api/events/login-google';
 import initUploadVideo from './api/events/upload-video';
 import initEdit from './api/events/edit-video';
 import initSelectFolder from './api/events/setting';
@@ -144,7 +143,6 @@ const createWindow = () => {
   mainWindow.webContents.on("did-finish-load", () => {
     initDownload(mainWindow);
     initEdit(mainWindow);
-    initLoginGoogle(mainWindow);
     initUploadVideo(mainWindow);
   });
 

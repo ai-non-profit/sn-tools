@@ -1,6 +1,6 @@
 import { BrowserWindow, ipcMain } from "electron";
 import { IPCEvent } from "src/util/constant";
-import { getAuthenticatedClient } from "../service/google.service";
+import { getAuthenticatedClient, oauth2Client } from '../service/google.service';
 import { google } from "googleapis";
 import { getTokens, saveTokens } from "../dal/token";
 
@@ -8,8 +8,9 @@ import { getTokens, saveTokens } from "../dal/token";
 const initialize = (_: BrowserWindow) => {
   ipcMain.handle(IPCEvent.LOGIN_YOUTUBE, async (_) => {
     const tokens = getTokens();
-    const auth = await getAuthenticatedClient();
-    const people = google.people({ version: 'v1', auth } as any);
+    const token = await getAuthenticatedClient();
+    oauth2Client.setCredentials(token);
+    const people = google.people({ version: 'v1', auth: oauth2Client } as any);
     const me = await people.people.get({
       resourceName: 'people/me',
       personFields: 'names,emailAddresses',
@@ -21,7 +22,7 @@ const initialize = (_: BrowserWindow) => {
         message: "No email found in Google account",
       }
     }
-    tokens[email] = auth;
+    tokens[email] = token;
     saveTokens(tokens);
     return {
       error: false,
