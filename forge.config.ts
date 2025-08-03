@@ -37,7 +37,7 @@ const config: ForgeConfig = {
         generateReleaseNotes: true,
         prerelease: false,
         draft: false,
-        authToken: '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'
+        authToken: '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'
       }
     }
   ],
