@@ -162,6 +162,16 @@ export default function SettingsPage() {
 
           <Box sx={{ display: 'flex', gap: 1 }}>
             <TextField
+              label="Email google sheet"
+              value="sn-tools@chromeextension-457909.iam.gserviceaccount.com"
+              fullWidth
+              size='small'
+              margin="normal"
+            />
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <TextField
               type='number'
               label="Offset Date Ago"
               value={settings.offsetDateAgo || 0}

@@ -253,7 +253,20 @@ const initialize = (_: BrowserWindow) => {
       const cookies = settings.tiktokCookies;
       const sheetLinks = search.trim() || "https://docs.google.com/spreadsheets/d/1jgdoEbMfweqBACFw9gPJkHEHWWIxK8_nkFUMxF80aXA/edit?gid=0#gid=0";
       const sheetId = sheetLinks.split('/d/')[1].split('/')[0];
-      const sheetData = await getGoogleSheetsData(sheetId, 'Sheet1!A1:A1000');
+      let sheetData = [];
+      try {
+        sheetData = await getGoogleSheetsData(sheetId, 'Sheet1!A1:A1000');
+      } catch (e) {
+        log.error(e);
+        return {
+          success: false,
+          data: {
+            message: "The service account sn-tools@chromeextension-457909.iam.gserviceaccount.com needs view permission to access the Google Sheet "
+          }
+
+        };
+      }
+
       const ttUrls: string[] = [];
       const ytUrls: string[] = [];
       sheetData.forEach((row: string[]) => {
