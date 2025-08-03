@@ -25,6 +25,7 @@ export function Search({ handleMoreOptions, handleSearch, isLoading }: any) {
             <MenuItem value="search">Search Box</MenuItem>
             <MenuItem value="account">Account</MenuItem>
             <MenuItem value="youtube">Youtube</MenuItem>
+            <MenuItem value="googleSheet">GoogleSheet</MenuItem>
           </Select>
         </FormControl>
         <FormControl fullWidth sx={{ display: 'flex', gap: 1, height: 'auto', '& div': { height: 'auto' } }}>

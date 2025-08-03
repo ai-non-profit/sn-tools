@@ -3,6 +3,8 @@ import { exec } from 'child_process';
 import { ffmpegPath } from '../util';
 import log from 'console';
 import { YTResponse } from '../dto/youtube';
+import { getAuthenticatedServiceAccountClient } from './google.service';
+import { google } from 'googleapis';
 
 const ytHeaders = new Headers();
 ytHeaders.append("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
@@ -89,4 +91,20 @@ export const getInfoYT = async (videoId: string, options: { format?: string } = 
     throw new Error(`YouTube API request failed with status ${res.status}`);
   }
   return res.json();
+}
+
+export const getGoogleSheetsData = async (spreadsheetId: string, range = 'Sheet1!A1:Z100'): Promise<any> => {
+  const jwtClient = getAuthenticatedServiceAccountClient();
+  const sheets = google.sheets({ version: 'v4', auth: jwtClient });
+  
+  try {
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range,
+    });
+    return response.data.values || [];
+  } catch (error) {
+    log.error('Error fetching Google Sheets data:', error);
+    throw error;
+  }
 }

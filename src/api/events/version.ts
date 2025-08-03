@@ -4,8 +4,9 @@ import { getSettings } from '../dal/setting';
 import { TranscriptRequest } from 'src/util/dto';
 import log from 'electron-log';
 import { getYoutubeID } from 'src/api/util';
-import { getInfoYT } from '../service/video.service';
+import { getGoogleSheetsData, getInfoYT } from '../service/video.service';
 import { AdaptiveFormat, YTResponse } from '../dto/youtube';
+import { TikTokVideo } from '../dto/event';
 
 interface Options {
   startDate: number;
@@ -150,7 +151,7 @@ export async function searchTiktok(search: string, cookies: string, {
       params.set('search_id', json?.extra?.logid || '');
     }
     options.headers.Cookie = cookies + '; ' + msToken;
-    for (const {type, item} of json?.data || []) {
+    for (const { type, item } of json?.data || []) {
       if (type !== 1 || item.createTime <= startDate || item.createTime >= endDate) continue;
       result.push(item);
       if (result.length >= maxDownloads) {
@@ -166,24 +167,70 @@ export async function searchTiktok(search: string, cookies: string, {
   };
 }
 
+export async function getTiktokInfoFromUrl(url: string, cookie: string): Promise<TikTokVideo | null> {
+  const res = await fetch(url, {
+    "headers": {
+      "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+      "accept-language": "en-US,en;q=0.7",
+      "cache-control": "max-age=0",
+      "priority": "u=0, i",
+      "sec-ch-ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\", \"Brave\";v=\"138\"",
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": "\"Linux\"",
+      "sec-fetch-dest": "document",
+      "sec-fetch-mode": "navigate",
+      "sec-fetch-site": "same-origin",
+      "sec-fetch-user": "?1",
+      "sec-gpc": "1",
+      "upgrade-insecure-requests": "1",
+      "cookie": cookie
+    },
+    "body": null,
+    "method": "GET"
+  });
+  if (!res.ok) {
+    log.error('Failed to fetch TikTok video:', res.statusText);
+    return null;
+  }
+  const html = await res.text();
+  const match = html.match(/<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application\/json">([\s\S]*?)<\/script>/);
+  if (!match) {
+    log.error('Failed to find video data in HTML');
+    return null;
+  }
+  const jsonStr = match[1].trim();
+  try {
+    const data = JSON.parse(jsonStr);
+    const itemInfo = data?.__DEFAULT_SCOPE__?.['webapp.video-detail']?.itemInfo?.itemStruct;
+    if (!itemInfo) {
+      log.error('No item info found in video data');
+      return null;
+    }
+    return itemInfo as TikTokVideo;
+  } catch (error) {
+    log.error('Failed to parse video data JSON:', error);
+    return null;
+  }
+}
+
 const initialize = (_: BrowserWindow) => {
   ipcMain.handle(IPCEvent.GET_VERSION, async (_) => {
     return app.getVersion();
   });
 
-  ipcMain.handle(IPCEvent.GET_TRANSCRIPT, async (_, {creatorId, videoId, musicURL}: TranscriptRequest) => {
+  ipcMain.handle(IPCEvent.GET_TRANSCRIPT, async (_, { creatorId, videoId, musicURL }: TranscriptRequest) => {
     const settings = getSettings();
     const cookies = settings.tiktokCookies;
     return getTranscript(creatorId, videoId, musicURL, cookies);
   });
 
-  ipcMain.handle(IPCEvent.CRAWLER_VIDEO, async (_, {search, type, options}) => {
+  ipcMain.handle(IPCEvent.CRAWLER_VIDEO, async (_, { search, type, options }) => {
     if (type === 'search') {
       const settings = getSettings();
       const cookies = settings.tiktokCookies;
       const maxDownload = settings.maxDownloads || 100;
       try {
-        return searchTiktok(search, cookies, {...options, maxDownloads: maxDownload});
+        return searchTiktok(search, cookies, { ...options, maxDownloads: maxDownload });
       } catch (error) {
         log.error('Error fetching TikTok videos:', error);
         return {
@@ -195,44 +242,73 @@ const initialize = (_: BrowserWindow) => {
     } else if (type === 'youtube') {
       const urls = search.split('\n').map((url: string) => url.trim());
       log.info('YouTube URLs:', urls);
-      const ids = urls.map(getYoutubeID);
-      const res = await Promise.all(ids.map(getInfoYT));
-      log.info('YouTube video information:', res);
-      const result = res.map((item: YTResponse) => ({
-        id: item.videoDetails.videoId,
-        title: item.videoDetails.title,
-        desc: item.videoDetails.shortDescription,
-        thumbnails: item.videoDetails.thumbnail.thumbnails[item.videoDetails.thumbnail.thumbnails.length - 1].url,
-        duration: +item.videoDetails.lengthSeconds,
-        url: urls.find((url: string) => url.includes(item.videoDetails.videoId)) || `https://www.youtube.com/watch?v=${item.videoDetails.videoId}`,
-        stats: {
-          playCount: +item.videoDetails.viewCount,
-          diggCount: 0,
-          dislikeCount: 0,
-          commentCount: 0
-        },
-        video: {
-          duration: +item.videoDetails.lengthSeconds,
-          cover: item.videoDetails.thumbnail.thumbnails[item.videoDetails.thumbnail.thumbnails.length - 1].url,
-          playAddr: `https://www.youtube.com/watch?v=${item.videoDetails.videoId}`,
-          downloadAddr: item.streamingData?.adaptiveFormats?.find((format: AdaptiveFormat) => format.quality === 'hd720')?.url || '',
-          format: 'mp4',
-        },
-        author: {
-          id: item.videoDetails.channelId,
-          uniqueId: item.videoDetails.channelId,
-          nickname: item.videoDetails.author,
-},
-        ytInfo: item,
-      }));
+      const result = await getYoutubeInfoFromURLs(urls);
       // Handle YouTube video fetching here
       return {
         success: true,
         data: result
       };
+    } else if (type === 'googleSheet') {
+      const settings = getSettings();
+      const cookies = settings.tiktokCookies;
+      const sheetLinks = search.trim() || "https://docs.google.com/spreadsheets/d/1jgdoEbMfweqBACFw9gPJkHEHWWIxK8_nkFUMxF80aXA/edit?gid=0#gid=0";
+      const sheetId = sheetLinks.split('/d/')[1].split('/')[0];
+      const sheetData = await getGoogleSheetsData(sheetId, 'Sheet1!A1:A1000');
+      const ttUrls: string[] = [];
+      const ytUrls: string[] = [];
+      sheetData.forEach((row: string[]) => {
+        const url = row[0];
+        if (url) {
+          if (url.includes('tiktok.com')) {
+            ttUrls.push(url);
+          } else if (url.includes('youtube.com')) {
+            ytUrls.push(url);
+          }
+        }
+      });
+      const ttVideos = await Promise.all(ttUrls.map((url) => getTiktokInfoFromUrl(url, cookies)));
+      const ytVideos = await getYoutubeInfoFromURLs(ytUrls);
+      return {
+        success: true,
+        data: [...ttVideos, ...ytVideos].filter((v: TikTokVideo | null) => v !== null)
+      };
     }
   });
 };
+
+async function getYoutubeInfoFromURLs(urls: string[]) {
+  const ids: string[] = urls.map(getYoutubeID);
+  const res = await Promise.all(ids.map(w => getInfoYT(w)));
+  log.info('YouTube video information:', res);
+  const result = res.map((item: YTResponse) => ({
+    id: item.videoDetails.videoId,
+    title: item.videoDetails.title,
+    desc: item.videoDetails.shortDescription,
+    thumbnails: item.videoDetails.thumbnail.thumbnails[item.videoDetails.thumbnail.thumbnails.length - 1].url,
+    duration: +item.videoDetails.lengthSeconds,
+    url: urls.find((url: string) => url.includes(item.videoDetails.videoId)) || `https://www.youtube.com/watch?v=${item.videoDetails.videoId}`,
+    stats: {
+      playCount: +item.videoDetails.viewCount,
+      diggCount: 0,
+      dislikeCount: 0,
+      commentCount: 0
+    },
+    video: {
+      duration: +item.videoDetails.lengthSeconds,
+      cover: item.videoDetails.thumbnail.thumbnails[item.videoDetails.thumbnail.thumbnails.length - 1].url,
+      playAddr: `https://www.youtube.com/watch?v=${item.videoDetails.videoId}`,
+      downloadAddr: item.streamingData?.adaptiveFormats?.find((format: AdaptiveFormat) => format.quality === 'hd720')?.url || '',
+      format: 'mp4',
+    },
+    author: {
+      id: item.videoDetails.channelId,
+      uniqueId: item.videoDetails.channelId,
+      nickname: item.videoDetails.author,
+    },
+    ytInfo: item,
+  }));
+  return result;
+}
 
 async function getInfo(ids: string) {
   const params = new URLSearchParams({
@@ -241,7 +317,7 @@ async function getInfo(ids: string) {
     key: 'AIzaSyCV2g9BR0ufhQHdj-yxuWFDSyEEQG8a-NI'
   });
   const url = 'https://www.googleapis.com/youtube/v3/videos?' + params.toString();
-  const options = {method: 'GET'};
+  const options = { method: 'GET' };
 
   try {
     const response = await fetch(url, options);
