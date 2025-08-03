@@ -7,6 +7,7 @@ on:
 
 env:
   NODE_OPTIONS: --max-old-space-size=4096
+  GH_TOKEN: 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
 
 jobs:
   build-linux:
@@ -28,6 +29,8 @@ jobs:
         run: yarn install
 
       - name: Build the Electron app for Linux
+        env:
+          GH_TOKEN: ${{ env.GITHUB_TOKEN }}
         run: NODE_OPTIONS='--max-old-space-size=4096' yarn run publish
 
   build-windows:
@@ -48,6 +51,7 @@ jobs:
       - name: Build & Publish Electron App (Windows)
         env:
           CERTIFICATE_PASSWORD: 16052025
+          GH_TOKEN: ${{ env.GITHUB_TOKEN }}
         run: set NODE_OPTIONS=--max-old-space-size=4096 && npm run publish --platform=win32
 
   build-macos:
@@ -69,4 +73,6 @@ jobs:
         run: yarn install
 
       - name: Publish Electron App (macOS)
+        env:
+          GH_TOKEN: ${{ env.GITHUB_TOKEN }}
         run: NODE_OPTIONS='--max-old-space-size=4096' yarn run publish
